@@ -9,6 +9,11 @@ import { db, ensureDatabaseIndexes } from "./src/db/db.js";
 import { users, posts, plans, tasks, gateways, transactions, settings, notifications, postComments } from "./src/db/schema.js";
 import { eq } from "drizzle-orm";
 import { easyMathQuizQuestions } from "./src/data/mathQuizzes.js";
+import { 
+  bangladeshiSeedUsers, 
+  bangladeshiSeedPosts, 
+  bangladeshiSeedTransactions 
+} from "./src/data/bangladeshiCommunitySeeds.js";
 
 async function startServer() {
   // Ensure database indexes on high-frequency tables (users, tasks, transactions)
@@ -453,6 +458,83 @@ async function startServer() {
         }
       }
 
+      // Seed authentic Bangladeshi community users if needed for user trust
+      let currentUsers = allUsers;
+      const hasBdUsers = currentUsers.some(u => u.id.startsWith('bd-user-'));
+      if (!hasBdUsers) {
+        try {
+          await db.insert(users).values(bangladeshiSeedUsers as any);
+          currentUsers = [...currentUsers, ...(bangladeshiSeedUsers as any)];
+        } catch (uSeedErr) {
+          console.warn("[DB Seed] Bangladeshi users seed notice:", uSeedErr);
+        }
+      }
+
+      // Seed authentic Bangla community posts & feedback if needed
+      let currentPosts = allPosts;
+      const hasBdPosts = currentPosts.some(p => p.id.startsWith('post-bd-'));
+      if (!hasBdPosts || currentPosts.length <= 2) {
+        try {
+          const postsToInsert = bangladeshiSeedPosts
+            .filter(p => !currentPosts.some(cp => cp.id === p.id))
+            .map(p => ({
+              id: p.id,
+              userId: p.userId,
+              userName: p.userName,
+              userAvatar: p.userAvatar,
+              content: p.content,
+              likes: p.likes,
+              comments: p.comments,
+              shares: p.shares,
+              createdAt: p.createdAt,
+              likedBy: p.likedBy || [],
+              status: p.status || 'approved'
+            }));
+          if (postsToInsert.length > 0) {
+            await db.insert(posts).values(postsToInsert as any);
+            currentPosts = [...currentPosts, ...(postsToInsert as any)];
+          }
+
+          // Insert nested seed comments
+          const commentsToInsert: any[] = [];
+          for (const bp of bangladeshiSeedPosts) {
+            if (bp.commentsList && bp.commentsList.length > 0) {
+              for (const cm of bp.commentsList) {
+                if (!allComments.some(ac => ac.id === cm.id)) {
+                  commentsToInsert.push({
+                    id: cm.id,
+                    postId: cm.postId,
+                    userId: cm.userId,
+                    userName: cm.userName,
+                    userAvatar: cm.userAvatar,
+                    content: cm.content,
+                    createdAt: cm.createdAt
+                  });
+                }
+              }
+            }
+          }
+          if (commentsToInsert.length > 0) {
+            await db.insert(postComments).values(commentsToInsert as any);
+            allComments.push(...(commentsToInsert as any));
+          }
+        } catch (pSeedErr) {
+          console.warn("[DB Seed] Bangladeshi posts seed notice:", pSeedErr);
+        }
+      }
+
+      // Seed authentic recent payout & deposit transactions for platform proof
+      let currentTransactions = allTransactions;
+      const hasBdTransactions = currentTransactions.some(t => t.id.startsWith('TXN-BD-'));
+      if (!hasBdTransactions) {
+        try {
+          await db.insert(transactions).values(bangladeshiSeedTransactions as any);
+          currentTransactions = [...currentTransactions, ...(bangladeshiSeedTransactions as any)];
+        } catch (tSeedErr) {
+          console.warn("[DB Seed] Bangladeshi transactions seed notice:", tSeedErr);
+        }
+      }
+
       // Group comments by postId in O(N) using Map for fast lookups
       const commentsByPost = new Map<string, typeof allComments>();
       for (const comment of allComments) {
@@ -468,12 +550,12 @@ async function startServer() {
       }, {} as any);
 
       const responsePayload = {
-        users: allUsers,
-        posts: allPosts.map(p => ({ ...p, commentsList: commentsByPost.get(p.id) || [] })),
+        users: currentUsers,
+        posts: currentPosts.map(p => ({ ...p, commentsList: commentsByPost.get(p.id) || [] })),
         plans: allPlans,
         tasks: formattedTasks,
         gateways: formattedGateways,
-        transactions: allTransactions,
+        transactions: currentTransactions,
         notifications: allNotifications,
         settings: settingsMap,
       };

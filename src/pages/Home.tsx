@@ -11,10 +11,10 @@ import FaqSection from '../components/FaqSection';
 import RecentActivity from '../components/RecentActivity';
 
 const topEarners = [
-  { id: '1', name: 'Alex Johnson', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alex', earnings: 1450.75, rank: 1 },
-  { id: '2', name: 'Sarah Parker', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah', earnings: 980.20, rank: 2 },
-  { id: '3', name: 'Mike Chen', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mike', earnings: 750.00, rank: 3 },
-  { id: '4', name: 'Emma Davis', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Emma', earnings: 420.50, rank: 4 },
+  { id: 'bd-1', name: 'Md. Faruk Hossain', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Faruk', earnings: 2350.00, rank: 1 },
+  { id: 'bd-2', name: 'Sumaiya Akter', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sumaiya', earnings: 1420.00, rank: 2 },
+  { id: 'bd-3', name: 'Tanvir Ahmed', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Tanvir', earnings: 850.50, rank: 3 },
+  { id: 'bd-4', name: 'Shakil Mahmud', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Shakil', earnings: 780.00, rank: 4 },
 ];
 
 export default function Home() {
