@@ -17,8 +17,8 @@ export default function AdminSettings() {
   const { siteSettings, updateSiteSettings } = useSiteSettings();
 
   const [formData, setFormData] = useState({
-    siteName: siteSettings.siteName || 'Earnify',
-    siteDescription: siteSettings.siteDescription || 'The best microjob platform to earn daily.',
+    siteName: siteSettings.siteName || 'miPall',
+    siteDescription: siteSettings.siteDescription || 'Join miPall, the ultimate mobile-first platform to complete simple micro jobs, refer friends, and earn real rewards seamlessly.',
     currency: siteSettings.currencySymbol || siteSettings.currency || '৳',
     minWithdraw: siteSettings.minWithdraw !== undefined ? siteSettings.minWithdraw : 10,
     minDeposit: siteSettings.minDeposit !== undefined ? siteSettings.minDeposit : 10,
@@ -32,6 +32,7 @@ export default function AdminSettings() {
     supportPhone: siteSettings.supportPhone || '',
     whatsappNumber: siteSettings.whatsappNumber || siteSettings.whatsappUrl || '',
     telegramUrl: siteSettings.telegramUrl || '',
+    mobileAppUrl: siteSettings.mobileAppUrl || '',
     facebookUrl: siteSettings.facebookUrl || '',
   });
 
@@ -42,8 +43,8 @@ export default function AdminSettings() {
   useEffect(() => {
     if (!isDirty) {
       setFormData({
-        siteName: siteSettings.siteName || 'Earnify',
-        siteDescription: siteSettings.siteDescription || 'The best microjob platform to earn daily.',
+        siteName: siteSettings.siteName || 'miPall',
+        siteDescription: siteSettings.siteDescription || 'Join miPall, the ultimate mobile-first platform to complete simple micro jobs, refer friends, and earn real rewards seamlessly.',
         currency: siteSettings.currencySymbol || siteSettings.currency || '৳',
         minWithdraw: siteSettings.minWithdraw !== undefined ? siteSettings.minWithdraw : 10,
         minDeposit: siteSettings.minDeposit !== undefined ? siteSettings.minDeposit : 10,
@@ -57,6 +58,7 @@ export default function AdminSettings() {
         supportPhone: siteSettings.supportPhone || '',
         whatsappNumber: siteSettings.whatsappNumber || siteSettings.whatsappUrl || '',
         telegramUrl: siteSettings.telegramUrl || '',
+        mobileAppUrl: siteSettings.mobileAppUrl || '',
         facebookUrl: siteSettings.facebookUrl || '',
       });
     }
@@ -111,7 +113,7 @@ export default function AdminSettings() {
     try {
       // 1. Prepare site settings payload
       const sitePayload = {
-        siteName: formData.siteName.trim() || 'Earnify',
+        siteName: formData.siteName.trim() || 'miPall',
         siteDescription: formData.siteDescription.trim(),
         currency: formData.currency.trim() || '৳',
         currencySymbol: formData.currency.trim() || '৳',
@@ -125,6 +127,7 @@ export default function AdminSettings() {
         whatsappNumber: formData.whatsappNumber.trim(),
         whatsappUrl: formData.whatsappNumber.trim(),
         telegramUrl: formData.telegramUrl.trim(),
+        mobileAppUrl: formData.mobileAppUrl?.trim() || '',
         facebookUrl: formData.facebookUrl.trim(),
       };
 
@@ -571,6 +574,21 @@ export default function AdminSettings() {
                   value={formData.whatsappNumber}
                   onChange={handleChange}
                   placeholder="+8801XXXXXXXXX or https://wa.me/..."
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3.5 py-2 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">Mobile App APK URL</label>
+              <div className="relative">
+                <Globe className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-indigo-500" />
+                <input
+                  type="text"
+                  name="mobileAppUrl"
+                  value={formData.mobileAppUrl}
+                  onChange={handleChange}
+                  placeholder="https://example.com/app.apk"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3.5 py-2 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
                 />
               </div>

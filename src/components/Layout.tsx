@@ -1,6 +1,6 @@
 import React, { useState, memo, useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, Briefcase, Wallet, TrendingUp, User, Menu, X, Settings, LogOut, Info, HelpCircle, Gift, Bell, BarChart3, Activity } from 'lucide-react';
+import { Home, Briefcase, Wallet, TrendingUp, User, Menu, X, Settings, LogOut, Info, HelpCircle, Gift, Bell, BarChart3, Activity, Smartphone, Download } from 'lucide-react';
 import { cn } from '../lib/utils';
 import OnboardingTutorial from './OnboardingTutorial';
 import { useApp } from '../context/AppContext';
@@ -277,8 +277,22 @@ export const Layout = memo(function Layout({ children }: { children: React.React
           </div>
         </div>
 
-        <div className="p-4 border-t border-slate-100 text-center bg-slate-50/50">
-          <p className="text-[10px] font-medium text-slate-400">{siteSettings.siteName} v1.0.0</p>
+        <div className="p-3 border-t border-slate-100 bg-slate-50/50 space-y-2">
+          {siteSettings.mobileAppUrl && (
+            <a 
+              href={siteSettings.mobileAppUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-between px-3 py-2 bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 rounded-lg text-indigo-700 transition-colors group"
+            >
+              <div className="flex items-center gap-2">
+                <Smartphone className="w-3.5 h-3.5 text-indigo-600" />
+                <span className="text-[10px] font-bold">Download App</span>
+              </div>
+              <Download className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100 group-hover:-translate-y-0.5 transition-all" />
+            </a>
+          )}
+          <p className="text-[9px] font-medium text-slate-400 text-center pt-1">{siteSettings.siteName} v1.0.0</p>
         </div>
 
       </div>

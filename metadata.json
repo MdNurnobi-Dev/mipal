@@ -1,6 +1,8 @@
 {
-  "name": "MicroJob Pro",
-  "description": "Mobile-first user investments and microjob platform.",
+  "name": "miPall",
+  "description": "Join miPall, the ultimate mobile-first platform to complete simple micro jobs, refer friends, and earn real rewards seamlessly.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }

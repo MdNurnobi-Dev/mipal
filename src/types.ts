@@ -115,6 +115,7 @@ export type SiteSettings = {
   telegramUrl: string;
   whatsappUrl: string;
   whatsappNumber?: string;
+  mobileAppUrl?: string;
   primaryColor: string;
   currency?: string;
   currencySymbol?: string;

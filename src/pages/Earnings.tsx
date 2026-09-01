@@ -188,119 +188,147 @@ export default function Earnings() {
   if (!currentUser) return null;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 pb-8 max-w-lg mx-auto font-sans">
       {earnedFeedback && (
-        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-emerald-600 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-2.5 font-bold text-sm animate-bounce">
-          <Sparkles className="w-5 h-5 text-emerald-200" />
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-emerald-600 text-white px-4 py-2.5 rounded-full shadow-2xl flex items-center gap-2 font-bold text-[11px] animate-bounce">
+          <Sparkles className="w-4 h-4 text-emerald-200" />
           {earnedFeedback}
         </div>
       )}
 
-      <div className="bg-indigo-600 rounded-xl p-4 text-white shadow-sm relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full blur-2xl -mr-8 -mt-8"></div>
-        <h2 className="text-indigo-100 text-[10px] font-semibold uppercase tracking-wider mb-1">Available Balance</h2>
-        <div className="text-2xl font-bold text-white">{formatCurrency(currentUser?.balance)}</div>
+      {/* Clean Light Hero Section */}
+      <div className="bg-white rounded-2xl p-4 text-slate-800 border border-slate-200 shadow-sm relative overflow-hidden mt-1">
+        {/* Subtle Background Accent */}
+        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-full blur-3xl -mr-8 -mt-8"></div>
         
+        <div className="relative z-10 flex justify-between items-start mb-3">
+          <div>
+            <p className="text-slate-500 text-[9px] font-bold uppercase tracking-widest mb-0.5 flex items-center gap-1"><Zap className="w-3 h-3 text-emerald-500" /> Available Balance</p>
+            <div className="text-[22px] font-black tracking-tight text-slate-800">{formatCurrency(currentUser?.balance || 0)}</div>
+          </div>
+          <Link 
+            to="/earnings-analytics" 
+            className="bg-slate-50 hover:bg-slate-100 border border-slate-200 p-1.5 rounded-lg transition-colors"
+          >
+            <BarChart3 className="w-4 h-4 text-indigo-600" />
+          </Link>
+        </div>
+
         {hasPlan ? (
-          <div className="mt-3 bg-indigo-700/50 p-2.5 rounded-lg border border-indigo-500/50 flex justify-between items-center relative z-10">
-            <div>
-              <p className="text-[9px] text-indigo-200 uppercase tracking-widest font-bold">Today's Earnings</p>
-              <p className="text-sm font-bold">{formatCurrency(currentDailyEarned)} / {formatCurrency(activePlan.dailyEarningLimit)}</p>
+          <div className="relative z-10 bg-slate-50 p-3 rounded-xl border border-slate-100">
+            <div className="flex justify-between items-end mb-2">
+              <div>
+                <p className="text-[9px] text-slate-500 font-semibold uppercase tracking-wider mb-0.5">Today's Limit</p>
+                <p className="text-[11px] font-bold"><span className="text-slate-800">{formatCurrency(currentDailyEarned)}</span> <span className="text-slate-400">/ {formatCurrency(activePlan.dailyEarningLimit)}</span></p>
+              </div>
+              <div className="text-right">
+                <span className="text-[9px] font-black bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded border border-indigo-100 uppercase">
+                  {activePlan.name}
+                </span>
+              </div>
             </div>
-            <div className="text-right">
-              <p className="text-[9px] text-indigo-200 uppercase tracking-widest font-bold">Plan</p>
-              <p className="text-xs font-bold text-indigo-100">{activePlan.name}</p>
+            {/* Progress Bar */}
+            <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+              <div 
+                className="bg-indigo-500 h-1.5 rounded-full transition-all duration-500" 
+                style={{ width: `${Math.min(100, (currentDailyEarned / activePlan.dailyEarningLimit) * 100)}%` }}
+              ></div>
             </div>
           </div>
         ) : (
-          <p className="text-[10px] text-indigo-100 mt-2 bg-indigo-700/50 p-2 rounded-lg border border-indigo-500/50 inline-block relative z-10">No active plan.</p>
+          <div className="relative z-10 bg-slate-50 p-3 rounded-xl border border-slate-100 flex justify-between items-center">
+            <p className="text-[10px] text-slate-500 font-medium">No active premium plan.</p>
+            <button onClick={() => navigate('/plan')} className="text-[10px] bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded-lg transition-colors">Upgrade Plan</button>
+          </div>
         )}
       </div>
 
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex-1">
-        <div className="flex justify-between items-center mb-3">
-          <h3 className="font-bold text-slate-800 text-sm">Earn Zone (মাইক্রো টাস্ক)</h3>
-          <div className="flex items-center gap-2">
-            <Link 
-              to="/earnings-analytics" 
-              className="flex items-center gap-1 text-[11px] font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-lg border border-indigo-200 transition-colors shadow-2xs"
-            >
-              <BarChart3 className="w-3.5 h-3.5" />
-              <span>Weekly Trends</span>
-            </Link>
-            <span className="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded-lg">
-              {activeTasks.length} Tasks
-            </span>
-          </div>
+      {/* Task List Section */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col mt-3">
+        <div className="border-b border-slate-100 bg-slate-50/50 px-3.5 py-2.5 flex justify-between items-center">
+          <h3 className="font-bold text-slate-800 text-[11px] uppercase tracking-wider flex items-center gap-1.5">
+            <CheckSquare className="w-3.5 h-3.5 text-indigo-500" /> Active Tasks
+          </h3>
+          <span className="text-[9px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
+            {activeTasks.length} Available
+          </span>
         </div>
         
         {!hasPlan && (
-          <div className="mb-4 bg-orange-50 border border-orange-200 text-orange-800 p-3 rounded-lg flex gap-2 items-start text-xs">
-            <AlertCircle className="w-4 h-4 shrink-0 text-orange-600 mt-0.5" />
-            <p>You need an active plan to start earning. <button onClick={() => navigate('/plan')} className="font-bold underline text-orange-900">View Plans</button></p>
+          <div className="p-3 bg-amber-50 border-b border-amber-100 text-amber-800 flex gap-2 items-start text-[10px] font-medium">
+            <AlertCircle className="w-4 h-4 shrink-0 text-amber-500 mt-0.5" />
+            <p>You need an active plan to start earning. <button onClick={() => navigate('/plan')} className="font-bold underline text-amber-900 ml-1">View Plans</button></p>
           </div>
         )}
 
         {hasPlan && isLimitReached && (
-          <div className="mb-4 bg-slate-50 border border-slate-200 text-slate-600 p-3 rounded-lg flex gap-2 items-start text-xs">
-            <AlertCircle className="w-4 h-4 shrink-0 text-slate-400 mt-0.5" />
-            <p>You have reached your daily earning limit. Come back tomorrow!</p>
+          <div className="p-3 bg-slate-50 border-b border-slate-100 text-slate-600 flex gap-2 items-start text-[10px] font-medium">
+            <CheckCircle2 className="w-4 h-4 shrink-0 text-slate-400 mt-0.5" />
+            <p>You have reached your daily earning limit. Great job! Come back tomorrow.</p>
           </div>
         )}
 
-        <div className="space-y-2">
+        <div className="divide-y divide-slate-100 max-h-[450px] overflow-y-auto no-scrollbar">
           {activeTasks.length === 0 && (
-            <div className="text-center p-6 text-slate-500 text-xs bg-slate-50 rounded-lg border border-slate-100">
+            <div className="text-center p-8 text-slate-500 text-[10px] font-bold opacity-80 flex flex-col items-center">
+              <CheckSquare className="w-6 h-6 text-slate-300 mb-2" />
               No active tasks available right now. Please check back later.
             </div>
           )}
           {activeTasks.map(task => (
-            <div key={task.id} className={`p-2.5 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-between transition-all ${!canEarn(task.reward) ? 'opacity-50 pointer-events-none' : 'hover:border-indigo-200 hover:bg-slate-50/80'}`}>
-              <div className="flex items-center gap-2.5">
-                {getTaskIcon(task.type)}
-                <div>
-                  <p className="text-xs font-bold text-slate-700">{task.title}</p>
-                  <p className="text-[9px] text-slate-400">{task.description || `${task.limit}`}</p>
+            <div 
+              key={task.id} 
+              className={`p-3 hover:bg-slate-50 transition-colors flex items-center justify-between group ${!canEarn(task.reward) ? 'opacity-50 grayscale pointer-events-none' : 'cursor-pointer'}`} 
+              onClick={() => { if(canEarn(task.reward)) startTask(task); }}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center group-hover:bg-white transition-colors shrink-0">
+                  {getTaskIcon(task.type)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] font-bold text-slate-800 leading-tight mb-0.5 truncate">{task.title}</p>
+                  <p className="text-[9px] text-slate-500 font-semibold truncate">{task.description || task.type}</p>
                 </div>
               </div>
               <button 
-                onClick={() => startTask(task)}
+                onClick={(e) => { e.stopPropagation(); startTask(task); }}
                 disabled={!canEarn(task.reward)}
-                className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors disabled:opacity-50 shadow-xs flex items-center gap-1 cursor-pointer"
+                className="shrink-0 text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-lg hover:bg-indigo-100 hover:border-indigo-200 transition-all disabled:opacity-50 shadow-sm flex items-center gap-1"
               >
-                <span>Earn</span>
-                <span>{formatSignedCurrency(task.reward, 'task_earning')}</span>
+                Earn {formatCurrency(task.reward)}
               </button>
             </div>
           ))}
         </div>
         
         {!hasPlan && (
-          <button onClick={() => navigate('/plan')} className="w-full mt-4 py-2.5 bg-indigo-600 text-white rounded-lg font-bold text-xs hover:bg-indigo-700 transition-colors shadow-sm">
-            Upgrade to Premium Plan
-          </button>
+          <div className="p-3 bg-slate-50 border-t border-slate-100 text-center">
+            <button onClick={() => navigate('/plan')} className="w-full py-2 bg-indigo-600 text-white rounded-xl font-bold text-[11px] hover:bg-indigo-700 transition-colors shadow-sm">
+              Upgrade Plan
+            </button>
+          </div>
         )}
       </div>
 
       {/* Task Execution Modal (Video Ad & Direct Website Visit with Countdown) */}
       {activeTask && (activeTask.type === 'Video' || activeTask.type === 'Website') && (
-        <div className="absolute inset-0 z-50 bg-white flex flex-col">
+        <div className="fixed inset-0 z-50 bg-white flex flex-col">
           {/* Top Countdown & Status Bar */}
-          <div className="bg-white text-slate-800 p-3 px-4 flex justify-between items-center border-b border-slate-200 shrink-0 shadow-sm">
+          <div className="bg-white text-slate-800 p-2.5 px-3 flex justify-between items-center shrink-0 border-b border-slate-200 shadow-sm relative z-10">
             <div className="flex items-center gap-2.5 min-w-0">
               {activeTask.type === 'Video' ? (
                 <div className="w-8 h-8 rounded-lg bg-orange-50 border border-orange-100 text-orange-600 flex items-center justify-center shrink-0">
-                  <PlayCircle className="w-5 h-5" />
+                  <PlayCircle className="w-4 h-4" />
                 </div>
               ) : (
                 <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
-                  <Globe className="w-5 h-5 animate-spin" style={{ animationDuration: '8s' }} />
+                  <Globe className="w-4 h-4 animate-spin" style={{ animationDuration: '8s' }} />
                 </div>
               )}
               <div className="min-w-0">
-                <h3 className="font-bold text-xs sm:text-sm flex items-center gap-2 truncate">
+                <h3 className="font-bold text-[12px] flex items-center gap-1.5 truncate">
                   <span className="truncate text-slate-800">{activeTask.title}</span>
-                  <span className="text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full shrink-0">
+                  <span className="text-[9px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded shrink-0">
                     +{formatCurrency(activeTask.reward)}
                   </span>
                 </h3>
@@ -308,10 +336,10 @@ export default function Earnings() {
                   {timer > 0 ? (
                     <>
                       <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></span>
-                      <span>কাউন্টডাউন চলছে: <b>{timer} সেকেন্ড</b> অপেক্ষা করুন</span>
+                      <span>কাউন্টডাউন: <b>{timer}s</b></span>
                     </>
                   ) : (
-                    <span className="text-emerald-600 font-bold">🎉 সময় সম্পন্ন হয়েছে! রিওয়ার্ড ক্লেম করুন।</span>
+                    <span className="text-emerald-600 font-bold">🎉 সময় সম্পন্ন! রিওয়ার্ড ক্লেম করুন।</span>
                   )}
                 </p>
               </div>
@@ -319,25 +347,28 @@ export default function Earnings() {
             
             <div className="flex items-center gap-2 shrink-0">
               {timer > 0 ? (
-                <div className="bg-red-50 border border-red-200 text-red-600 px-3 py-1.5 rounded-lg text-xs font-mono font-bold flex items-center gap-1.5 shadow-sm">
-                  <span className="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+                <div className="bg-rose-50 text-rose-600 border border-rose-100 px-2.5 py-1.5 rounded-lg text-[11px] font-mono font-bold flex items-center gap-1.5 shadow-sm">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>
                   00:{timer.toString().padStart(2, '0')}
                 </div>
               ) : (
                 <button 
                   onClick={claimTaskReward}
-                  className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-md shadow-emerald-500/20 animate-bounce cursor-pointer"
+                  className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1 shadow-[0_0_10px_rgba(16,185,129,0.3)] animate-bounce cursor-pointer"
                 >
-                  <Check className="w-4 h-4" /> Claim {formatCurrency(activeTask.reward)}
+                  <Check className="w-3.5 h-3.5" /> Claim
                 </button>
               )}
 
               <button 
-                onClick={() => setActiveTask(null)} 
-                className="p-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-500 hover:text-slate-700 transition-colors cursor-pointer border border-slate-200"
+                onClick={() => {
+                  if (timer > 0 && !confirm('টাস্ক এখনো শেষ হয়নি। আপনি কি টাস্কটি বাতিল করতে চান?')) return;
+                  setActiveTask(null);
+                }}
+                className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-50 text-slate-500 hover:bg-slate-100 hover:text-slate-700 border border-slate-200 transition-colors cursor-pointer"
                 title="Close"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -527,63 +558,64 @@ export default function Earnings() {
 
       {/* Task Execution Modal (Sohoj Math Quiz) */}
       {activeTask && activeTask.type === 'Quiz' && quizQuestions.length > 0 && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden border border-slate-100">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden border border-slate-100 flex flex-col max-h-full">
             {/* Header */}
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-5 text-white flex justify-between items-start relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+            <div className="bg-white p-4 border-b border-slate-100 flex justify-between items-start relative overflow-hidden shrink-0">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-full blur-2xl -mr-10 -mt-10"></div>
               <div className="relative z-10">
-                <div className="flex items-center gap-2 mb-1">
-                  <CheckSquare className="w-4 h-4 text-blue-200" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-blue-200">Sohoj Math Quiz (সহজ গণিত কুইজ)</span>
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <div className="bg-indigo-50 text-indigo-600 p-1 rounded">
+                    <CheckSquare className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Sohoj Math Quiz</span>
                 </div>
-                <h3 className="font-bold text-lg">{activeTask.title}</h3>
+                <h3 className="font-bold text-[14px] text-slate-800">{activeTask.title}</h3>
               </div>
               <button 
                 onClick={() => setActiveTask(null)} 
-                className="relative z-10 text-blue-200 hover:text-white p-1 bg-black/10 rounded-full backdrop-blur-sm transition-colors cursor-pointer"
+                className="relative z-10 text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-1.5 rounded-full transition-colors cursor-pointer"
               >
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5" />
               </button>
             </div>
             
             {/* Content */}
-            <div className="p-5">
-              <div className="flex justify-between items-center mb-4 text-xs font-bold text-slate-500">
+            <div className="p-4 overflow-y-auto">
+              <div className="flex justify-between items-center mb-3">
                 <div className="flex items-center gap-2">
-                  <span className="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md">
-                    Question #{quizIndex + 1}
+                  <span className="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded text-[10px] font-bold border border-indigo-100">
+                    Q#{quizIndex + 1}
                   </span>
                   <button 
                     onClick={nextQuizQuestion}
-                    className="flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded transition-colors cursor-pointer"
-                    title="Load another math question"
+                    className="flex items-center gap-1 text-[10px] font-bold text-slate-500 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded transition-colors cursor-pointer"
                   >
                     <RefreshCw className="w-3 h-3" />
-                    <span>New Question</span>
+                    <span>Skip</span>
                   </button>
                 </div>
-                <span className="text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 font-bold">
-                  Reward: {formatCurrency(activeTask.reward)}
+                <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 font-bold">
+                  +{formatCurrency(activeTask.reward)}
                 </span>
               </div>
               
-              <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 mb-4 text-center shadow-xs">
-                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Solve the Equation</p>
+              <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 mb-4 text-center shadow-inner">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Solve This</p>
                 <h4 className="text-3xl font-black text-slate-800 tracking-wider">
                   {quizQuestions[quizIndex]?.question}
                 </h4>
               </div>
               
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2.5">
                 {quizQuestions[quizIndex]?.options.map((opt, idx) => {
                   const isSelected = selectedOption === idx;
                   
-                  let btnClass = "border-slate-200 hover:border-blue-500 hover:bg-blue-50 text-slate-700";
+                  let btnClass = "border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 text-slate-700 bg-white";
                   if (isSelected && quizSuccess) {
-                    btnClass = "border-emerald-500 bg-emerald-50 text-emerald-900 font-bold";
+                    btnClass = "border-emerald-500 bg-emerald-50 text-emerald-900 font-bold shadow-sm shadow-emerald-500/20";
                   } else if (isSelected && quizError) {
-                    btnClass = "border-red-400 bg-red-50 text-red-900";
+                    btnClass = "border-rose-400 bg-rose-50 text-rose-900";
                   }
 
                   return (
@@ -591,30 +623,27 @@ export default function Earnings() {
                       key={idx}
                       onClick={() => handleQuizAnswer(idx)}
                       disabled={quizSuccess}
-                      className={`p-3.5 rounded-xl border-2 transition-all font-bold text-base flex items-center justify-between cursor-pointer ${btnClass}`}
+                      className={`p-3 rounded-xl border-2 transition-all font-bold text-sm flex items-center gap-2.5 cursor-pointer ${btnClass}`}
                     >
-                      <div className="flex items-center gap-2">
-                        <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-xs font-bold">
-                          {['A', 'B', 'C', 'D'][idx]}
-                        </span>
-                        <span>{opt}</span>
-                      </div>
-                      {isSelected && quizSuccess && <CheckCircle2 className="w-5 h-5 text-emerald-600" />}
+                      <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-[10px] font-black shrink-0">
+                        {['A', 'B', 'C', 'D'][idx]}
+                      </span>
+                      <span className="flex-1 text-left">{opt}</span>
+                      {isSelected && quizSuccess && <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />}
                     </button>
                   );
                 })}
               </div>
               
               {quizSuccess && (
-                <div className="mt-4 p-3 bg-emerald-50 text-emerald-700 rounded-xl text-xs font-bold flex items-center gap-2 border border-emerald-200 animate-pulse">
+                <div className="mt-4 p-2.5 bg-emerald-50 text-emerald-700 rounded-xl text-[11px] font-bold flex items-center justify-center gap-1.5 border border-emerald-200 animate-pulse">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>সঠিক উত্তর! (Correct Answer! Claiming reward...)</span>
+                  <span>সঠিক উত্তর! (Claiming reward...)</span>
                 </div>
               )}
-
               {quizError && (
-                <div className="mt-4 p-3 bg-red-50 text-red-600 rounded-xl text-xs font-bold flex items-center gap-2 border border-red-200">
-                  <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+                <div className="mt-4 p-2.5 bg-rose-50 text-rose-600 rounded-xl text-[11px] font-bold flex items-center justify-center gap-1.5 border border-rose-200">
+                  <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
                   <span>{quizError}</span>
                 </div>
               )}
