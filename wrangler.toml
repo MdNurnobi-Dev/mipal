@@ -1,0 +1,22 @@
+name = "microjob-pro"
+compatibility_date = "2024-03-20"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "dist"
+
+# Cloudflare D1 Serverless SQL Database Binding
+[[d1_databases]]
+binding = "DB"
+database_name = "microjob-db"
+database_id = "your-d1-database-id-here"
+migrations_dir = "migrations"
+
+# Cloudflare R2 High-Performance Object Storage Binding
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "microjob-storage"
+preview_bucket_name = "microjob-storage-preview"
+
+# Environment Variables
+[vars]
+ENVIRONMENT = "production"
+# PUBLIC_R2_URL = "https://pub-xxxxxx.r2.dev"
