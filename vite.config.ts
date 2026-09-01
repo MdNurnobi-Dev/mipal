@@ -11,6 +11,30 @@ export default defineConfig(() => {
         '@': path.resolve(__dirname, '.'),
       },
     },
+    build: {
+      chunkSizeWarningLimit: 600,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              if (id.includes('recharts') || id.includes('d3')) {
+                return 'charts-vendor';
+              }
+              if (id.includes('lucide-react')) {
+                return 'icons-vendor';
+              }
+              if (id.includes('react-router-dom') || id.includes('react-router') || id.includes('@remix-run')) {
+                return 'router-vendor';
+              }
+              if (id.includes('react') || id.includes('react-dom') || id.includes('scheduler')) {
+                return 'react-core';
+              }
+              return 'vendor';
+            }
+          },
+        },
+      },
+    },
     server: {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
       // Do not modifyâfile watching is disabled to prevent flickering during agent edits.

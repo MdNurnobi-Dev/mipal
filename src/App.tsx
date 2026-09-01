@@ -3,43 +3,46 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import React, { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { AdminLayout } from './components/AdminLayout';
-import Home from './pages/Home';
-import Earnings from './pages/Earnings';
-import EarningsAnalytics from './pages/EarningsAnalytics';
-import Plan from './pages/Plan';
-import Wallet from './pages/Wallet';
-import Auth from './pages/Auth';
-import Profile from './pages/Profile';
-import Refer from './pages/Refer';
-import AdminLogin from './pages/admin/AdminLogin';
-import AdminDashboard from './pages/admin/AdminDashboard';
-import AdminUsers from './pages/admin/AdminUsers';
-import AdminReferrals from './pages/admin/AdminReferrals';
-import AdminGiveaway from './pages/admin/AdminGiveaway';
-import AdminDailyReward from './pages/admin/AdminDailyReward';
-import AdminTasks from './pages/admin/AdminTasks';
-import AdminPlans from './pages/admin/AdminPlans';
-import AdminTransactions from './pages/admin/AdminTransactions';
-import AdminPosts from './pages/admin/AdminPosts';
-import AdminSettings from './pages/admin/AdminSettings';
-import AdminNotificationSettings from './pages/admin/AdminNotificationSettings';
-import AdminBranding from './pages/admin/AdminBranding';
-import AdminGateways from './pages/admin/payment/AdminGateways';
-import AdminDeposits from './pages/admin/payment/AdminDeposits';
-import AdminWithdraws from './pages/admin/payment/AdminWithdraws';
-
-import Deposit from './pages/Deposit';
-import Withdraw from './pages/Withdraw';
-import UserSettings from './pages/UserSettings';
-import HelpCenter from './pages/HelpCenter';
-import Notifications from './pages/Notifications';
-import PlatformActivity from './pages/PlatformActivity';
-
+import RouteLoadingFallback from './components/RouteLoadingFallback';
 import { AppProvider, useApp } from './context/AppContext';
-import { useEffect } from 'react';
+
+// User Facing Pages - Lazy Loaded for minimal initial bundle
+const Home = lazy(() => import('./pages/Home'));
+const Earnings = lazy(() => import('./pages/Earnings'));
+const EarningsAnalytics = lazy(() => import('./pages/EarningsAnalytics'));
+const Plan = lazy(() => import('./pages/Plan'));
+const Wallet = lazy(() => import('./pages/Wallet'));
+const Auth = lazy(() => import('./pages/Auth'));
+const Profile = lazy(() => import('./pages/Profile'));
+const Refer = lazy(() => import('./pages/Refer'));
+const Deposit = lazy(() => import('./pages/Deposit'));
+const Withdraw = lazy(() => import('./pages/Withdraw'));
+const UserSettings = lazy(() => import('./pages/UserSettings'));
+const HelpCenter = lazy(() => import('./pages/HelpCenter'));
+const Notifications = lazy(() => import('./pages/Notifications'));
+const PlatformActivity = lazy(() => import('./pages/PlatformActivity'));
+
+// Admin Dashboard & Management Pages - Lazy Loaded in isolated chunk
+const AdminLogin = lazy(() => import('./pages/admin/AdminLogin'));
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+const AdminUsers = lazy(() => import('./pages/admin/AdminUsers'));
+const AdminReferrals = lazy(() => import('./pages/admin/AdminReferrals'));
+const AdminGiveaway = lazy(() => import('./pages/admin/AdminGiveaway'));
+const AdminDailyReward = lazy(() => import('./pages/admin/AdminDailyReward'));
+const AdminTasks = lazy(() => import('./pages/admin/AdminTasks'));
+const AdminPlans = lazy(() => import('./pages/admin/AdminPlans'));
+const AdminTransactions = lazy(() => import('./pages/admin/AdminTransactions'));
+const AdminPosts = lazy(() => import('./pages/admin/AdminPosts'));
+const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'));
+const AdminNotificationSettings = lazy(() => import('./pages/admin/AdminNotificationSettings'));
+const AdminBranding = lazy(() => import('./pages/admin/AdminBranding'));
+const AdminGateways = lazy(() => import('./pages/admin/payment/AdminGateways'));
+const AdminDeposits = lazy(() => import('./pages/admin/payment/AdminDeposits'));
+const AdminWithdraws = lazy(() => import('./pages/admin/payment/AdminWithdraws'));
 
 function BrandingHandler() {
   const { siteSettings } = useApp();
@@ -76,74 +79,143 @@ export default function App() {
       <BrowserRouter>
         <BrandingHandler />
         <Routes>
-        {/* Admin Routes */}
-        <Route path="/admin/login" element={<AdminLogin />} />
-        <Route
-          path="/admin/*"
-          element={
-            <AdminLayout>
-              <Routes>
-                <Route path="/" element={<AdminDashboard />} />
-                <Route path="/users" element={<AdminUsers />} />
-                <Route path="/referrals" element={<AdminReferrals />} />
-                <Route path="/marketing/giveaway" element={<AdminGiveaway />} />
-                <Route path="/posts" element={<AdminPosts />} />
-                <Route path="/marketing/daily-rewards" element={<AdminDailyReward />} />
-                <Route path="/tasks" element={<AdminTasks />} />
-                <Route path="/plans" element={<AdminPlans />} />
-                <Route path="/transactions" element={<AdminTransactions />} />
-                <Route path="/settings" element={<AdminSettings />} />
-                <Route path="/branding" element={<AdminBranding />} />
-                <Route path="/settings/notifications" element={<AdminNotificationSettings />} />
-                
-                {/* Payment Sub Menu */}
-                <Route path="/payments/gateways" element={<AdminGateways />} />
-                <Route path="/payments/deposits/pending" element={<AdminDeposits status="pending" />} />
-                <Route path="/payments/deposits/approved" element={<AdminDeposits status="approved" />} />
-                <Route path="/payments/deposits/all" element={<AdminDeposits status="all" />} />
-                <Route path="/payments/withdraws/pending" element={<AdminWithdraws status="pending" />} />
-                <Route path="/payments/withdraws/approved" element={<AdminWithdraws status="approved" />} />
-                
-                <Route path="*" element={<AdminDashboard />} />
-              </Routes>
-            </AdminLayout>
-          }
-        />
+          {/* Admin Routes with Dark Fallback */}
+          <Route
+            path="/admin/login"
+            element={
+              <Suspense fallback={<RouteLoadingFallback isAdmin />}>
+                <AdminLogin />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/admin/*"
+            element={
+              <AdminLayout>
+                <Suspense fallback={<RouteLoadingFallback isAdmin />}>
+                  <Routes>
+                    <Route path="/" element={<AdminDashboard />} />
+                    <Route path="/users" element={<AdminUsers />} />
+                    <Route path="/referrals" element={<AdminReferrals />} />
+                    <Route path="/marketing/giveaway" element={<AdminGiveaway />} />
+                    <Route path="/posts" element={<AdminPosts />} />
+                    <Route path="/marketing/daily-rewards" element={<AdminDailyReward />} />
+                    <Route path="/tasks" element={<AdminTasks />} />
+                    <Route path="/plans" element={<AdminPlans />} />
+                    <Route path="/transactions" element={<AdminTransactions />} />
+                    <Route path="/settings" element={<AdminSettings />} />
+                    <Route path="/branding" element={<AdminBranding />} />
+                    <Route path="/settings/notifications" element={<AdminNotificationSettings />} />
+                    
+                    {/* Payment Sub Menu */}
+                    <Route path="/payments/gateways" element={<AdminGateways />} />
+                    <Route path="/payments/deposits/pending" element={<AdminDeposits status="pending" />} />
+                    <Route path="/payments/deposits/approved" element={<AdminDeposits status="approved" />} />
+                    <Route path="/payments/deposits/all" element={<AdminDeposits status="all" />} />
+                    <Route path="/payments/withdraws/pending" element={<AdminWithdraws status="pending" />} />
+                    <Route path="/payments/withdraws/approved" element={<AdminWithdraws status="approved" />} />
+                    
+                    <Route path="*" element={<AdminDashboard />} />
+                  </Routes>
+                </Suspense>
+              </AdminLayout>
+            }
+          />
 
-        {/* User Auth & Referral Routes */}
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/login" element={<Auth defaultMode="login" />} />
-        <Route path="/register" element={<Auth defaultMode="signup" />} />
-        <Route path="/signup" element={<Auth defaultMode="signup" />} />
-        <Route path="/join" element={<Auth defaultMode="signup" />} />
-        <Route path="/ref/:refCode" element={<Auth defaultMode="signup" />} />
-        <Route path="/referral/:refCode" element={<Auth defaultMode="signup" />} />
-        <Route path="/join/:refCode" element={<Auth defaultMode="signup" />} />
-        <Route
-          path="/*"
-          element={
-            <Layout>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/earnings" element={<Earnings />} />
-                <Route path="/earnings-analytics" element={<EarningsAnalytics />} />
-                <Route path="/earnings-report" element={<EarningsAnalytics />} />
-                <Route path="/plan" element={<Plan />} />
-                <Route path="/wallet" element={<Wallet />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/refer" element={<Refer />} />
-                <Route path="/deposit" element={<Deposit />} />
-                <Route path="/withdraw" element={<Withdraw />} />
-                <Route path="/settings" element={<UserSettings />} />
-                <Route path="/help" element={<HelpCenter />} />
-                <Route path="/notifications" element={<Notifications />} />
-                <Route path="/platform-activity" element={<PlatformActivity />} />
-                <Route path="/recent-activity" element={<PlatformActivity />} />
-              </Routes>
-            </Layout>
-          }
-        />
-      </Routes>
+          {/* User Auth & Referral Routes */}
+          <Route
+            path="/auth"
+            element={
+              <Suspense fallback={<RouteLoadingFallback />}>
+                <Auth />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/login"
+            element={
+              <Suspense fallback={<RouteLoadingFallback />}>
+                <Auth defaultMode="login" />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <Suspense fallback={<RouteLoadingFallback />}>
+                <Auth defaultMode="signup" />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/signup"
+            element={
+              <Suspense fallback={<RouteLoadingFallback />}>
+                <Auth defaultMode="signup" />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/join"
+            element={
+              <Suspense fallback={<RouteLoadingFallback />}>
+                <Auth defaultMode="signup" />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/ref/:refCode"
+            element={
+              <Suspense fallback={<RouteLoadingFallback />}>
+                <Auth defaultMode="signup" />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/referral/:refCode"
+            element={
+              <Suspense fallback={<RouteLoadingFallback />}>
+                <Auth defaultMode="signup" />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/join/:refCode"
+            element={
+              <Suspense fallback={<RouteLoadingFallback />}>
+                <Auth defaultMode="signup" />
+              </Suspense>
+            }
+          />
+
+          {/* User App Layout & Protected Routes */}
+          <Route
+            path="/*"
+            element={
+              <Layout>
+                <Suspense fallback={<RouteLoadingFallback />}>
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/earnings" element={<Earnings />} />
+                    <Route path="/earnings-analytics" element={<EarningsAnalytics />} />
+                    <Route path="/earnings-report" element={<EarningsAnalytics />} />
+                    <Route path="/plan" element={<Plan />} />
+                    <Route path="/wallet" element={<Wallet />} />
+                    <Route path="/profile" element={<Profile />} />
+                    <Route path="/refer" element={<Refer />} />
+                    <Route path="/deposit" element={<Deposit />} />
+                    <Route path="/withdraw" element={<Withdraw />} />
+                    <Route path="/settings" element={<UserSettings />} />
+                    <Route path="/help" element={<HelpCenter />} />
+                    <Route path="/notifications" element={<Notifications />} />
+                    <Route path="/platform-activity" element={<PlatformActivity />} />
+                    <Route path="/recent-activity" element={<PlatformActivity />} />
+                  </Routes>
+                </Suspense>
+              </Layout>
+            }
+          />
+        </Routes>
       </BrowserRouter>
     </AppProvider>
   );
