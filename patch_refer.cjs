@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+const fs = require('fs');
+const content = `import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { useCurrency } from '../hooks/useCurrency';
 import { 
@@ -67,7 +68,7 @@ export default function Refer() {
 
   // Dynamic share link
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
-  const inviteLink = `${origin}/auth?ref=${currentUser?.referralCode || ''}`;
+  const inviteLink = \`\${origin}/auth?ref=\${currentUser?.referralCode || ''}\`;
 
   const handleCopyCode = () => {
     if (currentUser?.referralCode) {
@@ -90,7 +91,7 @@ export default function Refer() {
       try {
         await navigator.share({
           title: 'Join miPall and earn daily rewards!',
-          text: `Use my invite code ${currentUser?.referralCode} to get an instant ${formatCurrency(newUserBonus)} welcome bonus!`,
+          text: \`Use my invite code \${currentUser?.referralCode} to get an instant \${formatCurrency(newUserBonus)} welcome bonus!\`,
           url: inviteLink,
         });
       } catch (err) {
@@ -101,9 +102,9 @@ export default function Refer() {
     }
   };
 
-  const shareText = encodeURIComponent(`Sign up on miPall using my invite link and get an instant ${formatCurrency(newUserBonus)} welcome bonus! ${inviteLink}`);
-  const whatsappUrl = `https://api.whatsapp.com/send?text=${shareText}`;
-  const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${encodeURIComponent(`Get instant ${formatCurrency(newUserBonus)} welcome bonus on miPall!`)}`;
+  const shareText = encodeURIComponent(\`Sign up on miPall using my invite link and get an instant \${formatCurrency(newUserBonus)} welcome bonus! \${inviteLink}\`);
+  const whatsappUrl = \`https://api.whatsapp.com/send?text=\${shareText}\`;
+  const telegramUrl = \`https://t.me/share/url?url=\${encodeURIComponent(inviteLink)}&text=\${encodeURIComponent(\`Get instant \${formatCurrency(newUserBonus)} welcome bonus on miPall!\`)}\`;
 
   if (!currentUser) return null;
 
@@ -200,31 +201,31 @@ export default function Refer() {
       <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-[10px] font-bold">
         <button
           onClick={() => setActiveTab('info')}
-          className={`flex-1 py-1.5 rounded-md transition-colors flex items-center justify-center gap-1.5 ${
+          className={\`flex-1 py-1.5 rounded-md transition-colors flex items-center justify-center gap-1.5 \${
             activeTab === 'info' 
               ? 'bg-white text-indigo-700 shadow-sm border border-slate-200/50' 
               : 'text-slate-500 hover:text-slate-700'
-          }`}
+          }\`}
         >
           <Sparkles className="w-3 h-3" /> Guide
         </button>
         <button
           onClick={() => setActiveTab('members')}
-          className={`flex-1 py-1.5 rounded-md transition-colors flex items-center justify-center gap-1.5 ${
+          className={\`flex-1 py-1.5 rounded-md transition-colors flex items-center justify-center gap-1.5 \${
             activeTab === 'members' 
               ? 'bg-white text-indigo-700 shadow-sm border border-slate-200/50' 
               : 'text-slate-500 hover:text-slate-700'
-          }`}
+          }\`}
         >
           <Users className="w-3 h-3" /> Network
         </button>
         <button
           onClick={() => setActiveTab('history')}
-          className={`flex-1 py-1.5 rounded-md transition-colors flex items-center justify-center gap-1.5 ${
+          className={\`flex-1 py-1.5 rounded-md transition-colors flex items-center justify-center gap-1.5 \${
             activeTab === 'history' 
               ? 'bg-white text-indigo-700 shadow-sm border border-slate-200/50' 
               : 'text-slate-500 hover:text-slate-700'
-          }`}
+          }\`}
         >
           <Activity className="w-3 h-3" /> History
         </button>
@@ -365,7 +366,7 @@ export default function Refer() {
                   <div key={member.id} className="p-2.5 flex items-center justify-between gap-2 hover:bg-slate-50 transition-colors">
                     <div className="flex items-center gap-2.5 min-w-0">
                       <img 
-                        src={member.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(member.name)}`} 
+                        src={member.avatar || \`https://api.dicebear.com/7.x/avataaars/svg?seed=\${encodeURIComponent(member.name)}\`} 
                         alt={member.name}
                         className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 shrink-0" 
                       />
@@ -442,3 +443,6 @@ export default function Refer() {
     </div>
   );
 }
+`;
+fs.writeFileSync('src/pages/Refer.tsx', content);
+console.log('Refer.tsx patched');
