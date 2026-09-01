@@ -6,7 +6,6 @@ import {
   ShieldCheck, 
   CheckCircle2, 
   ArrowUpRight,
-  Info,
   Check
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -31,7 +30,7 @@ export default function Withdraw() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successModal, setSuccessModal] = useState(false);
 
-  const balance = currentUser?.balance;
+  const balance = currentUser?.balance || 0;
 
   const selectedGateway = useMemo(() => {
     return activeGateways.find(g => g.id === selectedGwId) || activeGateways[0];
@@ -91,117 +90,107 @@ export default function Withdraw() {
   if (!currentUser) return null;
 
   return (
-    <div className="space-y-4 pb-8 max-w-lg mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="space-y-3 pb-8 max-w-lg mx-auto font-sans">
+      {/* Compact Header */}
+      <div className="flex items-center justify-between bg-white p-3 rounded-2xl border border-slate-200 shadow-sm">
         <div className="flex items-center gap-2.5">
           <button 
             onClick={() => navigate('/wallet')} 
-            className="p-2 bg-white rounded-full border border-slate-200 shadow-2xs text-slate-700 hover:bg-slate-50 transition-colors"
+            className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors border border-transparent hover:border-slate-200"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div>
-            <h2 className="text-base font-bold text-slate-800">Withdraw Funds</h2>
-            <p className="text-[11px] text-slate-500">Transfer money to your personal account</p>
+            <h2 className="text-[13px] font-black text-slate-800">Withdraw Funds</h2>
+            <p className="text-[10px] text-slate-500 font-medium">Transfer out to your account</p>
           </div>
         </div>
-        <div className="flex items-center gap-1.5 bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-bold px-2.5 py-1 rounded-full">
-          <ShieldCheck className="w-3.5 h-3.5" />
-          <span>Fast Processing</span>
+        <div className="flex items-center gap-1 bg-indigo-50 border border-indigo-100 text-indigo-600 text-[9px] font-bold px-2 py-1 rounded-md shadow-sm">
+          <ShieldCheck className="w-3 h-3" />
+          <span>Fast</span>
         </div>
       </div>
 
-      {/* Available Balance Card */}
-      <div className="bg-white p-4 rounded-2xl shadow-sm relative overflow-hidden flex items-center justify-between border border-slate-200">
-        <div>
-          <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-1 flex items-center gap-1.5">
-            <WalletIcon className="w-3.5 h-3.5 text-indigo-600" />
-            Available Balance
+      {/* Available Balance */}
+      <div className="bg-slate-900 p-3.5 rounded-xl shadow-sm relative overflow-hidden flex items-center justify-between border border-slate-800">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/20 rounded-full blur-3xl -mr-8 -mt-8"></div>
+        <div className="relative z-10">
+          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5 flex items-center gap-1.5">
+            <WalletIcon className="w-3 h-3 text-slate-300" />
+            Wallet Balance
           </p>
-          <div className="text-2xl font-black text-slate-800 tracking-tight">
+          <div className="text-xl font-black text-white tracking-tight">
             {formatCurrency(balance)}
           </div>
         </div>
         <button
           type="button"
           onClick={handleMax}
-          className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1.5 rounded-xl transition-colors cursor-pointer border border-indigo-100"
+          className="relative z-10 bg-white/10 hover:bg-white/20 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg transition-colors cursor-pointer border border-white/10 shadow-sm"
         >
-          Withdraw All
+          MAX
         </button>
       </div>
 
-      <form onSubmit={handleWithdraw} className="space-y-4">
+      <form onSubmit={handleWithdraw} className="space-y-3">
         {/* Step 1: Payout Method */}
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+        <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm space-y-2">
           <div className="flex items-center justify-between">
-            <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-              <span className="w-4 h-4 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[9px]">1</span>
-              Select Payout Gateway
+            <label className="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+              <span className="w-3.5 h-3.5 rounded-full bg-slate-800 text-white flex items-center justify-center text-[8px]">1</span>
+              Payout Method
             </label>
-            <span className="text-[10px] text-slate-400">Where to receive money</span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-2 gap-2">
             {activeGateways.map((gw) => {
               const isSelected = selectedGateway?.id === gw.id;
               return (
                 <div 
                   key={gw.id} 
                   onClick={() => setSelectedGwId(gw.id)}
-                  className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                  className={`flex items-center gap-2 p-2 rounded-lg border transition-all cursor-pointer ${
                     isSelected 
-                      ? 'border-indigo-600 bg-indigo-50/50 shadow-xs' 
-                      : 'border-slate-150 bg-white hover:bg-slate-50/80 hover:border-slate-300'
+                      ? 'border-slate-800 bg-slate-50 shadow-sm' 
+                      : 'border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300'
                   }`}
                 >
-                  <PaymentGatewayLogo name={gw.name} size="md" />
+                  <PaymentGatewayLogo name={gw.name} size="sm" />
                   <div className="flex-1 min-w-0">
-                    <span className={`font-bold text-xs truncate block ${isSelected ? 'text-indigo-950' : 'text-slate-800'}`}>
+                    <p className={`font-bold text-[11px] truncate ${isSelected ? 'text-slate-900' : 'text-slate-700'}`}>
                       {gw.name}
-                    </span>
-                    <span className="text-[10px] text-slate-500">
-                      Min: {formatCurrency(gw.minAmount || minWithdraw)}
-                    </span>
-                  </div>
-                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                    isSelected ? 'border-indigo-600' : 'border-slate-300'
-                  }`}>
-                    {isSelected && <div className="w-2 h-2 rounded-full bg-indigo-600" />}
+                    </p>
+                    <p className="text-[9px] text-slate-400 truncate mt-0.5">
+                      Min {formatCurrency(gw.minAmount || minWithdraw)}
+                    </p>
                   </div>
                 </div>
               );
             })}
             {activeGateways.length === 0 && (
-              <div className="col-span-2 text-center text-xs text-slate-400 py-3">
-                No custom payout gateways configured.
+              <div className="col-span-2 text-center text-[10px] text-slate-400 py-2">
+                No gateways configured.
               </div>
             )}
           </div>
         </div>
 
         {/* Step 2: Withdrawal Amount */}
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
-          <div className="flex justify-between items-center">
-            <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-              <span className="w-4 h-4 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[9px]">2</span>
-              Withdraw Amount
-            </label>
-            <span className="text-[10px] font-semibold text-slate-500">
-              Min: {formatCurrency(minWithdraw)}
-            </span>
-          </div>
+        <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm space-y-2">
+          <label className="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+            <span className="w-3.5 h-3.5 rounded-full bg-slate-800 text-white flex items-center justify-center text-[8px]">2</span>
+            Withdraw Amount
+          </label>
 
           <div className="relative">
-            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-black text-xl select-none">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm select-none">
               {currencySymbol}
             </span>
             <input 
               type="number" 
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-9 pr-3 text-xl font-black text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all shadow-inner"
+              className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 pl-7 pr-3 text-sm font-black text-slate-800 outline-none focus:ring-1 focus:ring-slate-400 focus:bg-white transition-shadow"
               required
               min={minWithdraw}
               max={balance}
@@ -210,14 +199,18 @@ export default function Withdraw() {
             />
           </div>
 
-          {/* Quick Percentages */}
-          <div className="flex gap-2 pt-1">
+          <div className="flex justify-between items-center px-1">
+            <span className="text-[9px] font-semibold text-slate-500">Min: {formatCurrency(minWithdraw)}</span>
+            <span className="text-[9px] font-semibold text-slate-500">Max: {formatCurrency(balance)}</span>
+          </div>
+
+          <div className="flex gap-1.5 pt-0.5">
             {quickPercentages.map((pct) => (
               <button
                 key={pct}
                 type="button"
                 onClick={() => setAmount(((balance * pct) / 100).toFixed(2))}
-                className="flex-1 py-1.5 rounded-lg text-xs font-bold bg-slate-50 border border-slate-200 text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-colors"
+                className="flex-1 py-1 rounded-md text-[10px] font-bold bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-800 transition-colors"
               >
                 {pct}%
               </button>
@@ -226,33 +219,30 @@ export default function Withdraw() {
         </div>
 
         {/* Step 3: Account Details */}
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3.5">
-          <div className="flex items-center justify-between">
-            <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-              <span className="w-4 h-4 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[9px]">3</span>
-              Receiving Account Details
-            </label>
-            <span className="text-[10px] text-slate-400">Accurate info required</span>
-          </div>
+        <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm space-y-2.5">
+          <label className="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+            <span className="w-3.5 h-3.5 rounded-full bg-slate-800 text-white flex items-center justify-center text-[8px]">3</span>
+            Receiving Account
+          </label>
 
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => setAccountType('Personal')}
-              className={`py-2 rounded-xl text-xs font-bold border transition-colors ${
+              className={`py-1.5 rounded-md text-[10px] font-bold border transition-colors ${
                 accountType === 'Personal'
-                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs'
+                  ? 'bg-slate-800 text-white border-slate-800'
                   : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
               }`}
             >
-              Personal Account
+              Personal
             </button>
             <button
               type="button"
               onClick={() => setAccountType('Agent')}
-              className={`py-2 rounded-xl text-xs font-bold border transition-colors ${
+              className={`py-1.5 rounded-md text-[10px] font-bold border transition-colors ${
                 accountType === 'Agent'
-                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs'
+                  ? 'bg-slate-800 text-white border-slate-800'
                   : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
               }`}
             >
@@ -261,72 +251,72 @@ export default function Withdraw() {
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-              Account Number / Crypto Wallet Address <span className="text-rose-500">*</span>
+            <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+              Account No / Wallet Address <span className="text-rose-500">*</span>
             </label>
             <input 
               type="text" 
               required
               value={accountNumber}
               onChange={e => setAccountNumber(e.target.value)}
-              placeholder="e.g. 017XXXXXXXX or USDT TRC20 Address"
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-3 text-xs font-mono font-bold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+              placeholder="e.g. 017XXXXXXXX or USDT TRC20"
+              className="w-full bg-slate-50 border border-slate-200 rounded-lg py-1.5 px-2.5 text-[11px] font-mono font-bold text-slate-800 outline-none focus:ring-1 focus:ring-slate-400 transition-shadow"
             />
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-              Additional Notes (Optional)
+            <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+              Notes (Optional)
             </label>
             <input 
               type="text"
               value={notes}
               onChange={e => setNotes(e.target.value)}
-              placeholder="e.g. Emergency payout or alternative contact"
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-3 text-xs font-medium text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+              placeholder="e.g. urgent payout"
+              className="w-full bg-slate-50 border border-slate-200 rounded-lg py-1.5 px-2.5 text-[11px] text-slate-800 outline-none focus:ring-1 focus:ring-slate-400 transition-shadow"
             />
           </div>
         </div>
 
-        {/* Submit Withdrawal Request */}
+        {/* Submit */}
         <button 
           type="submit"
           disabled={isSubmitting || !amount || parseFloat(amount) > balance || parseFloat(amount) < minWithdraw}
-          className="w-full bg-indigo-600 text-white font-bold py-3.5 px-4 text-sm rounded-xl hover:bg-indigo-700 transition-all shadow-md shadow-indigo-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          className="w-full bg-slate-900 text-white font-bold py-3 text-[11px] rounded-xl hover:bg-slate-800 transition-colors shadow-sm flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting ? (
             <>
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span>Processing Request...</span>
+              <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <span>Processing...</span>
             </>
           ) : (
             <>
-              <ArrowUpRight className="w-4 h-4" />
-              <span>Submit Withdrawal Request ({formatCurrency(amount || '0')})</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+              <span>Submit Request ({formatCurrency(amount || '0')})</span>
             </>
           )}
         </button>
       </form>
 
-      {/* Success Modal */}
+      {/* Success Modal (Compact) */}
       {successModal && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center space-y-4 animate-in fade-in zoom-in-95 duration-200">
-            <div className="w-14 h-14 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
-              <Check className="w-7 h-7 stroke-[3]" />
+        <div className="fixed inset-0 bg-slate-900/40 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl p-5 max-w-xs w-full shadow-xl text-center space-y-3 animate-in fade-in zoom-in-95 duration-200">
+            <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
+              <Check className="w-5 h-5 stroke-[3]" />
             </div>
 
-            <div className="space-y-1">
-              <h3 className="text-lg font-bold text-slate-800">Withdrawal Requested!</h3>
-              <p className="text-xs text-slate-500">
-                Your request to withdraw <span className="font-bold text-slate-800">{formatCurrency(amount)}</span> via {selectedGateway?.name} is submitted.
+            <div>
+              <h3 className="text-sm font-black text-slate-800">Withdrawal Requested!</h3>
+              <p className="text-[10px] text-slate-500 mt-0.5">
+                <span className="font-bold text-slate-700">{formatCurrency(amount)}</span> via {selectedGateway?.name}
               </p>
             </div>
 
-            <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-left text-xs space-y-1.5 font-mono">
+            <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100 text-left text-[10px] font-mono space-y-1">
               <div className="flex justify-between text-slate-500">
                 <span>Account:</span>
-                <span className="font-bold text-slate-800 truncate max-w-[180px]">{accountNumber}</span>
+                <span className="font-bold text-slate-700 truncate max-w-[120px]">{accountNumber}</span>
               </div>
               <div className="flex justify-between text-slate-500">
                 <span>Status:</span>
@@ -334,15 +324,11 @@ export default function Withdraw() {
               </div>
             </div>
 
-            <p className="text-[11px] text-slate-400">
-              Funds will be sent to your account within 15-60 minutes after admin verification.
-            </p>
-
             <button
               onClick={() => navigate('/wallet')}
-              className="w-full bg-indigo-600 text-white font-bold py-2.5 rounded-xl hover:bg-indigo-700 transition-colors text-xs"
+              className="w-full bg-slate-900 text-white font-bold py-2 rounded-lg hover:bg-slate-800 transition-colors text-[10px]"
             >
-              Back to Wallet
+              Done
             </button>
           </div>
         </div>

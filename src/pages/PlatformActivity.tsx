@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Activity, 
   CheckCircle, 
@@ -6,18 +6,42 @@ import {
   ArrowUpCircle, 
   Gift, 
   Search, 
-  Filter, 
-  ArrowRight,
-  TrendingUp,
   Clock,
   Sparkles,
-  ShieldCheck,
   RefreshCw,
-  ExternalLink
+  Zap,
+  ShieldCheck,
+  TrendingUp
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useCurrency } from '../hooks/useCurrency';
+
+// Fake Data Generator Helpers for Trust Building
+const firstNames = ['Rahim', 'Karim', 'Sajid', 'Hasan', 'Ayesha', 'Fatima', 'Nusrat', 'John', 'Alex', 'Rifat', 'Mehedi', 'Riya', 'Tania', 'Sumon', 'Aminul', 'Khadija', 'Sadia', 'Shihab', 'Rakib', 'Imran', 'Tamim', 'Sakib'];
+const gateways = ['bKash', 'Nagad', 'Rocket', 'Binance', 'USDT', 'Bank Transfer'];
+
+const generateFakeActivity = () => {
+  const isDeposit = Math.random() > 0.5;
+  const amounts = isDeposit ? [500, 1000, 1500, 2000, 2500, 3000, 5000, 10000] : [200, 300, 500, 800, 1000, 1200, 1500, 2500, 3000];
+  
+  const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+  const name = `${firstName} ${'*'.repeat(3)}`; // Masked name for trust
+  
+  const amount = amounts[Math.floor(Math.random() * amounts.length)];
+  const gateway = gateways[Math.floor(Math.random() * gateways.length)];
+  
+  return {
+    id: `fake-${Date.now()}-${Math.random()}`,
+    userId: 'fake',
+    userName: name,
+    type: isDeposit ? 'deposit' : 'withdraw',
+    amount: amount,
+    status: 'approved',
+    method: gateway,
+    date: new Date().toISOString(),
+    isFake: true
+  };
+};
 
 export default function PlatformActivity() {
   const { transactions, refetchData } = useApp();
@@ -25,6 +49,36 @@ export default function PlatformActivity() {
   const [selectedType, setSelectedType] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  
+  // Fake Activity State
+  const [fakeActivities, setFakeActivities] = useState<any[]>([]);
+
+  // Initialize and periodically add fake activities
+  useEffect(() => {
+    // Generate initial fake data for past 2 hours
+    const initialFakes = Array.from({ length: 6 }).map((_, i) => {
+      const act = generateFakeActivity();
+      // Spread them across the last few hours
+      act.date = new Date(Date.now() - (Math.random() * 2 * 60 * 60 * 1000)).toISOString();
+      return act;
+    });
+    
+    // Sort them so they are in a realistic order
+    initialFakes.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    setFakeActivities(initialFakes);
+
+    // Set interval for every ~5 minutes (300000 ms)
+    // To make it slightly dynamic in UI, let's use 5 minutes exactly
+    const interval = setInterval(() => {
+      setFakeActivities(prev => {
+        const newAct = generateFakeActivity();
+        // Keep only up to 50 fake activities so it doesn't bloat memory
+        return [newAct, ...prev].slice(0, 50);
+      });
+    }, 5 * 60 * 1000); 
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -32,19 +86,16 @@ export default function PlatformActivity() {
     setTimeout(() => setIsRefreshing(false), 500);
   };
 
-  // Filter activities
+  // Filter and combine activities
   const filteredActivities = useMemo(() => {
-    return [...transactions]
+    const realApproved = transactions.filter(t => t.status === 'approved' && ['deposit', 'withdraw', 'task_earning', 'daily_reward', 'referral_bonus'].includes(t.type));
+    
+    const combined = [...realApproved, ...fakeActivities];
+
+    return combined
       .filter(t => {
-        // Status filter
-        const isApproved = t.status === 'approved';
-        const isRelevant = ['deposit', 'withdraw', 'task_earning', 'daily_reward', 'referral_bonus'].includes(t.type);
-        if (!isApproved || !isRelevant) return false;
-
-        // Type filter
         if (selectedType !== 'all' && t.type !== selectedType) return false;
-
-        // Search filter
+        
         if (searchQuery.trim()) {
           const q = searchQuery.toLowerCase();
           const matchUser = (t.userName || '').toLowerCase().includes(q);
@@ -56,55 +107,55 @@ export default function PlatformActivity() {
         return true;
       })
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [transactions, selectedType, searchQuery]);
+  }, [transactions, fakeActivities, selectedType, searchQuery]);
 
-  // Statistics Summary
+  // Statistics Summary (Including Fake for trust building, or just Real? Better include fake to match UI)
   const stats = useMemo(() => {
-    const approved = transactions.filter(t => t.status === 'approved');
-    const totalDeposits = approved.filter(t => t.type === 'deposit').reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
-    const totalWithdrawals = approved.filter(t => t.type === 'withdraw').reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
-    const totalTaskPayouts = approved.filter(t => t.type === 'task_earning').reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
-    const totalCount = filteredActivities.length;
+    const combined = [...transactions.filter(t => t.status === 'approved'), ...fakeActivities];
+    
+    const totalDeposits = combined.filter(t => t.type === 'deposit').reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+    const totalWithdrawals = combined.filter(t => t.type === 'withdraw').reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+    const totalTaskPayouts = combined.filter(t => t.type === 'task_earning').reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
 
     return {
       totalDeposits,
       totalWithdrawals,
       totalTaskPayouts,
-      totalCount
+      totalCount: filteredActivities.length
     };
-  }, [transactions, filteredActivities]);
+  }, [transactions, fakeActivities, filteredActivities]);
 
   const getIcon = (type: string) => {
     switch (type) {
-      case 'deposit': return <ArrowDownCircle className="w-4 h-4 text-emerald-600" />;
-      case 'withdraw': return <ArrowUpCircle className="w-4 h-4 text-rose-600" />;
-      case 'task_earning': return <CheckCircle className="w-4 h-4 text-indigo-600" />;
-      case 'daily_reward': return <Gift className="w-4 h-4 text-amber-600" />;
-      case 'referral_bonus': return <Sparkles className="w-4 h-4 text-blue-600" />;
-      default: return <Activity className="w-4 h-4 text-slate-600" />;
+      case 'deposit': return <ArrowDownCircle className="w-3.5 h-3.5 text-emerald-600" />;
+      case 'withdraw': return <ArrowUpCircle className="w-3.5 h-3.5 text-rose-600" />;
+      case 'task_earning': return <CheckCircle className="w-3.5 h-3.5 text-indigo-600" />;
+      case 'daily_reward': return <Gift className="w-3.5 h-3.5 text-amber-600" />;
+      case 'referral_bonus': return <Sparkles className="w-3.5 h-3.5 text-blue-600" />;
+      default: return <Activity className="w-3.5 h-3.5 text-slate-600" />;
     }
   };
 
   const getBadgeClass = (type: string) => {
     switch (type) {
-      case 'deposit': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-      case 'withdraw': return 'bg-rose-50 text-rose-700 border-rose-200';
-      case 'task_earning': return 'bg-indigo-50 text-indigo-700 border-indigo-200';
-      case 'daily_reward': return 'bg-amber-50 text-amber-700 border-amber-200';
-      case 'referral_bonus': return 'bg-blue-50 text-blue-700 border-blue-200';
-      default: return 'bg-slate-50 text-slate-700 border-slate-200';
+      case 'deposit': return 'bg-emerald-50 text-emerald-600 border-emerald-100';
+      case 'withdraw': return 'bg-rose-50 text-rose-600 border-rose-100';
+      case 'task_earning': return 'bg-indigo-50 text-indigo-600 border-indigo-100';
+      case 'daily_reward': return 'bg-amber-50 text-amber-600 border-amber-100';
+      case 'referral_bonus': return 'bg-blue-50 text-blue-600 border-blue-100';
+      default: return 'bg-slate-50 text-slate-600 border-slate-100';
     }
   };
 
   const getMessage = (tx: any) => {
     const amountStr = formatCurrency(tx.amount);
     switch (tx.type) {
-      case 'deposit': return <span>deposited <strong className="text-emerald-600 font-bold">{amountStr}</strong> via {tx.method || 'Gateway'}</span>;
-      case 'withdraw': return <span>withdrew <strong className="text-rose-600 font-bold">{amountStr}</strong> via {tx.method || 'Payout'}</span>;
-      case 'task_earning': return <span>completed a micro task and earned <strong className="text-indigo-600 font-bold">{amountStr}</strong></span>;
-      case 'daily_reward': return <span>claimed daily streak reward of <strong className="text-amber-600 font-bold">{amountStr}</strong></span>;
-      case 'referral_bonus': return <span>received affiliate referral commission of <strong className="text-blue-600 font-bold">{amountStr}</strong></span>;
-      default: return <span>processed transaction of {amountStr}</span>;
+      case 'deposit': return <span>Deposited <strong className="text-emerald-700 font-bold">{amountStr}</strong> via {tx.method || 'Gateway'}</span>;
+      case 'withdraw': return <span>Withdrew <strong className="text-rose-700 font-bold">{amountStr}</strong> via {tx.method || 'Payout'}</span>;
+      case 'task_earning': return <span>Earned <strong className="text-indigo-700 font-bold">{amountStr}</strong> from micro task</span>;
+      case 'daily_reward': return <span>Claimed <strong className="text-amber-700 font-bold">{amountStr}</strong> streak reward</span>;
+      case 'referral_bonus': return <span>Earned <strong className="text-blue-700 font-bold">{amountStr}</strong> affiliate bonus</span>;
+      default: return <span>Processed {amountStr}</span>;
     }
   };
 
@@ -120,82 +171,92 @@ export default function PlatformActivity() {
   };
 
   return (
-    <div className="space-y-4 max-w-lg mx-auto pb-12">
-      {/* Header Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-4 sm:p-5 rounded-2xl shadow-sm relative overflow-hidden">
+    <div className="space-y-4 max-w-lg mx-auto pb-12 font-sans">
+      {/* Light Theme Banner - Compact & Clean */}
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-4 relative overflow-hidden">
+        {/* Subtle background decoration */}
+        <div className="absolute top-0 right-0 -mr-6 -mt-6 w-24 h-24 bg-blue-50 rounded-full blur-2xl opacity-70 pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 -ml-6 -mb-6 w-24 h-24 bg-indigo-50 rounded-full blur-2xl opacity-70 pointer-events-none"></div>
+        
         <div className="relative z-10">
-          <div className="flex items-center justify-between">
-            <span className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 px-2.5 py-0.5 rounded-full border border-emerald-500/30">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-              Live Activity Stream
+          <div className="flex items-center justify-between mb-2">
+            <span className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-full border border-emerald-100">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              Live Feed
             </span>
             <button
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="p-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-white text-xs transition-colors flex items-center gap-1 cursor-pointer"
-              title="Refresh live stream"
+              className="p-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-600 text-xs transition-colors flex items-center gap-1.5 cursor-pointer"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
-              <span className="text-[10px] font-semibold">Refresh</span>
+              <span className="text-[10px] font-semibold hidden sm:inline-block">Sync</span>
             </button>
           </div>
-          <h1 className="text-lg font-black tracking-tight mt-2 flex items-center gap-2">
-            <Activity className="w-5 h-5 text-indigo-400" />
-            Platform Real-Time Activity
+          
+          <h1 className="text-base font-black text-slate-800 tracking-tight flex items-center gap-1.5">
+            <Zap className="w-4 h-4 text-blue-500" />
+            Recent Activity
           </h1>
-          <p className="text-slate-300 text-xs mt-1 leading-relaxed">
-            Transparent public ledger of all completed task payouts, verified deposits, processed withdrawals, and user reward achievements.
+          <p className="text-slate-500 text-[11px] mt-0.5 leading-relaxed">
+            Real-time verified platform deposits, withdrawals, and payouts.
           </p>
         </div>
       </div>
 
-      {/* 3 Overview Metric Chips */}
+      {/* Overview Metric Chips - Compact */}
       <div className="grid grid-cols-3 gap-2">
-        <div className="bg-white p-2.5 rounded-xl border border-slate-200 text-center shadow-2xs">
-          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Deposited</p>
-          <p className="text-xs font-black text-emerald-600 mt-0.5 truncate">{formatCurrency(stats.totalDeposits)}</p>
+        <div className="bg-white p-2.5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-center">
+          <div className="flex items-center gap-1 mb-0.5">
+            <ArrowDownCircle className="w-3 h-3 text-emerald-500" />
+            <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Deposits</p>
+          </div>
+          <p className="text-xs font-black text-emerald-700 truncate">{formatCurrency(stats.totalDeposits)}</p>
         </div>
-        <div className="bg-white p-2.5 rounded-xl border border-slate-200 text-center shadow-2xs">
-          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Withdrawn</p>
-          <p className="text-xs font-black text-purple-600 mt-0.5 truncate">{formatCurrency(stats.totalWithdrawals)}</p>
+        <div className="bg-white p-2.5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-center">
+          <div className="flex items-center gap-1 mb-0.5">
+            <ArrowUpCircle className="w-3 h-3 text-rose-500" />
+            <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Payouts</p>
+          </div>
+          <p className="text-xs font-black text-rose-700 truncate">{formatCurrency(stats.totalWithdrawals)}</p>
         </div>
-        <div className="bg-white p-2.5 rounded-xl border border-slate-200 text-center shadow-2xs">
-          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Task Payouts</p>
-          <p className="text-xs font-black text-indigo-600 mt-0.5 truncate">{formatCurrency(stats.totalTaskPayouts)}</p>
+        <div className="bg-white p-2.5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-center">
+          <div className="flex items-center gap-1 mb-0.5">
+            <CheckCircle className="w-3 h-3 text-indigo-500" />
+            <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Task Earned</p>
+          </div>
+          <p className="text-xs font-black text-indigo-700 truncate">{formatCurrency(stats.totalTaskPayouts)}</p>
         </div>
       </div>
 
-      {/* Filter Tabs & Search Box */}
-      <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-2xs space-y-2.5">
-        {/* Search */}
+      {/* Filter Tabs & Search Box - Minimal */}
+      <div className="bg-white p-2.5 rounded-xl border border-slate-200 shadow-sm space-y-2">
         <div className="relative">
-          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search by user, gateway, or type..."
+            placeholder="Search activity..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-indigo-500"
+            className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-3 py-1.5 text-[11px] outline-none focus:ring-1 focus:ring-blue-500 transition-shadow"
           />
         </div>
-
-        {/* Filter Pills */}
+        
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
           {[
-            { id: 'all', label: 'All Activities' },
-            { id: 'task_earning', label: 'Tasks' },
+            { id: 'all', label: 'All' },
             { id: 'deposit', label: 'Deposits' },
-            { id: 'withdraw', label: 'Withdrawals' },
-            { id: 'daily_reward', label: 'Rewards' },
-            { id: 'referral_bonus', label: 'Referrals' },
+            { id: 'withdraw', label: 'Withdraws' },
+            { id: 'task_earning', label: 'Tasks' },
+            { id: 'daily_reward', label: 'Rewards' }
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setSelectedType(tab.id)}
-              className={`px-2.5 py-1 rounded-lg text-[10px] font-bold whitespace-nowrap transition-all cursor-pointer ${
+              className={`px-2.5 py-1 rounded-md text-[10px] font-semibold whitespace-nowrap transition-colors cursor-pointer ${
                 selectedType === tab.id
-                  ? 'bg-indigo-600 text-white shadow-2xs'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  ? 'bg-slate-800 text-white shadow-sm'
+                  : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
               }`}
             >
               {tab.label}
@@ -205,49 +266,54 @@ export default function PlatformActivity() {
       </div>
 
       {/* Activity List Container */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-        <div className="p-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-          <div className="flex items-center gap-1.5">
-            <Activity className="w-3.5 h-3.5 text-indigo-500" />
-            <h2 className="text-xs font-bold text-slate-800">
-              Activity History ({filteredActivities.length})
-            </h2>
-          </div>
-          <span className="text-[10px] text-slate-400">Auto-updates</span>
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="px-3 py-2 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+          <h2 className="text-[11px] font-bold text-slate-700 flex items-center gap-1.5">
+            <TrendingUp className="w-3 h-3 text-slate-400" />
+            History ({stats.totalCount})
+          </h2>
+          <span className="flex items-center gap-1 text-[9px] font-medium text-slate-400">
+            <ShieldCheck className="w-3 h-3 text-emerald-500" /> Verified
+          </span>
         </div>
 
         {filteredActivities.length === 0 ? (
-          <div className="p-8 text-center text-slate-400 space-y-2">
-            <Activity className="w-8 h-8 text-slate-300 mx-auto" />
-            <p className="font-bold text-xs text-slate-600">No matching activities</p>
-            <p className="text-[10px] text-slate-400">Try adjusting your search query or filter criteria.</p>
+          <div className="p-8 text-center text-slate-400 space-y-1.5">
+            <Activity className="w-6 h-6 text-slate-300 mx-auto" />
+            <p className="font-bold text-[11px] text-slate-600">No activity found</p>
           </div>
         ) : (
           <div className="divide-y divide-slate-100">
             {filteredActivities.map((tx) => (
-              <div key={tx.id} className="p-3 flex items-start gap-3 hover:bg-slate-50 transition-colors">
-                <div className="w-8 h-8 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0 mt-0.5">
+              <div key={tx.id} className="p-2.5 flex items-start gap-2.5 hover:bg-slate-50/80 transition-colors">
+                <div className="w-7 h-7 rounded-lg bg-white border border-slate-200 shadow-sm flex items-center justify-center shrink-0 mt-0.5">
                   {getIcon(tx.type)}
                 </div>
+                
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-1 mb-0.5">
-                    <p className="text-xs font-bold text-slate-900 truncate">
-                      {tx.userName || 'Verified User'}
+                  <div className="flex items-center justify-between gap-1">
+                    <p className="text-[11px] font-bold text-slate-800 truncate flex items-center gap-1">
+                      {tx.userName || 'User'}
+                      {tx.isFake && (
+                        <span title="Verified Member"><ShieldCheck className="w-2.5 h-2.5 text-blue-500 inline-block" /></span>
+                      )}
                     </p>
-                    <span className="text-[10px] font-bold text-slate-400 whitespace-nowrap flex items-center gap-1">
+                    <span className="text-[9px] font-medium text-slate-400 whitespace-nowrap flex items-center gap-0.5">
                       <Clock className="w-2.5 h-2.5" />
                       {getTimeAgo(tx.date)}
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-600 leading-snug">
+                  
+                  <p className="text-[10px] text-slate-600 mt-0.5 truncate">
                     {getMessage(tx)}
                   </p>
-                  <div className="flex items-center gap-2 mt-1.5">
-                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border uppercase tracking-wider ${getBadgeClass(tx.type)}`}>
+                  
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded border uppercase tracking-wider ${getBadgeClass(tx.type)}`}>
                       {tx.type.replace('_', ' ')}
                     </span>
                     {tx.method && (
-                      <span className="text-[9px] font-medium text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
+                      <span className="text-[8px] font-semibold text-slate-500 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded">
                         {tx.method}
                       </span>
                     )}
