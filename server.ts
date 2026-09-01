@@ -3,6 +3,7 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import jwt from "jsonwebtoken";
 import path from "path";
+import compression from "compression";
 import { createServer as createViteServer } from "vite";
 import { db, ensureDatabaseIndexes } from "./src/db/db.js";
 import { users, posts, plans, tasks, gateways, transactions, settings, notifications, postComments } from "./src/db/schema.js";
@@ -16,10 +17,24 @@ async function startServer() {
   });
 
   const app = express();
+  
+  // Enable high-performance HTTP compression (gzip/deflate) for all responses
+  app.use(compression());
+  
   app.use(cookieParser());
   const PORT = 3000;
 
   app.use(express.json());
+
+  // In-memory caching for aggregated /api/data to eliminate database query stalls
+  let cachedData: any = null;
+  let cachedDataTimestamp = 0;
+  const DATA_CACHE_TTL_MS = 3000; // 3-second cache window for high read throughput
+
+  const invalidateDataCache = () => {
+    cachedData = null;
+    cachedDataTimestamp = 0;
+  };
 
   // Data fetching API
   
@@ -182,6 +197,7 @@ async function startServer() {
         });
       }
 
+      invalidateDataCache();
       res.json({ success: true });
     } catch (e: any) {
       console.error("Registration error:", e);
@@ -267,6 +283,11 @@ async function startServer() {
 
   app.get("/api/data", async (req, res) => {
     try {
+      // Return cached aggregate if within TTL to eliminate redundant queries
+      if (cachedData && (Date.now() - cachedDataTimestamp < DATA_CACHE_TTL_MS)) {
+        return res.json(cachedData);
+      }
+
       // Execute high-frequency database table fetches in parallel to minimize dashboard latency
       const [
         allUsers,
@@ -446,7 +467,7 @@ async function startServer() {
         return acc;
       }, {} as any);
 
-      res.json({
+      const responsePayload = {
         users: allUsers,
         posts: allPosts.map(p => ({ ...p, commentsList: commentsByPost.get(p.id) || [] })),
         plans: allPlans,
@@ -455,7 +476,12 @@ async function startServer() {
         transactions: allTransactions,
         notifications: allNotifications,
         settings: settingsMap,
-      });
+      };
+
+      cachedData = responsePayload;
+      cachedDataTimestamp = Date.now();
+
+      res.json(responsePayload);
     } catch (error) {
       console.error("Data fetch error:", error);
       res.status(500).json({ error: "Internal server error" });
@@ -554,6 +580,7 @@ async function startServer() {
         }
       }
 
+      invalidateDataCache();
       res.json({ success: true, balance: newBalance, dailyEarned: newDailyEarned, lastEarnedDate: today, transaction: tx });
     } catch (e: any) {
       res.status(500).json({ error: e.message });
@@ -608,6 +635,7 @@ async function startServer() {
       };
       await db.insert(transactions).values(tx);
 
+      invalidateDataCache();
       res.json({ success: true, balance: newBalance, streak: newStreak, lastCheckInDate: today, transaction: tx, reward });
     } catch (e: any) {
       res.status(500).json({ error: e.message });
@@ -643,6 +671,7 @@ async function startServer() {
           return res.json({ success: true, count: 0 });
         }
         await db.insert(targetTable).values(payload);
+        invalidateDataCache();
         res.json({ success: true });
       } else if (action === 'update') {
         if (!id) {
@@ -665,12 +694,14 @@ async function startServer() {
         } catch (updateErr: any) {
           console.warn(`Update mutation for ${table} warning:`, updateErr?.message);
         }
+        invalidateDataCache();
         res.json({ success: true });
       } else if (action === 'delete') {
         if (!id) {
           return res.status(400).json({ error: "Missing ID for delete" });
         }
         await db.delete(targetTable).where(eq((targetTable as any).id, id));
+        invalidateDataCache();
         res.json({ success: true });
       } else {
         res.status(400).json({error: "Invalid action"});
@@ -693,6 +724,7 @@ async function startServer() {
         set: { value }
       });
       console.log(`[/api/settings 200] Updated setting key '${key}' successfully`);
+      invalidateDataCache();
       res.json({ success: true, key, value });
     } catch (e: any) {
       console.error(`[/api/settings 500] Database error saving setting '${key}':`, {
@@ -714,7 +746,10 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
+    app.use(express.static(distPath, {
+      maxAge: '1d',
+      etag: true
+    }));
     app.get('*', (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });

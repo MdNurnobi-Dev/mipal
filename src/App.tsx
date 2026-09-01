@@ -110,8 +110,15 @@ export default function App() {
           }
         />
 
-        {/* User Routes */}
+        {/* User Auth & Referral Routes */}
         <Route path="/auth" element={<Auth />} />
+        <Route path="/login" element={<Auth defaultMode="login" />} />
+        <Route path="/register" element={<Auth defaultMode="signup" />} />
+        <Route path="/signup" element={<Auth defaultMode="signup" />} />
+        <Route path="/join" element={<Auth defaultMode="signup" />} />
+        <Route path="/ref/:refCode" element={<Auth defaultMode="signup" />} />
+        <Route path="/referral/:refCode" element={<Auth defaultMode="signup" />} />
+        <Route path="/join/:refCode" element={<Auth defaultMode="signup" />} />
         <Route
           path="/*"
           element={

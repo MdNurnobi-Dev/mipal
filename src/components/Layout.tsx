@@ -49,12 +49,23 @@ export const Layout = memo(function Layout({ children }: { children: React.React
   const { siteSettings } = useSiteSettings();
   const { formatCurrency } = useCurrency();
   const navigate = useNavigate();
+  const location = useLocation();
+
   React.useEffect(() => {
     if (!currentUser) {
-      navigate("/auth");
+      // Preserve search query like ?ref=XYZ when redirecting to auth
+      navigate(`/auth${location.search ? location.search : ''}`, { replace: true });
     }
-  }, [currentUser, navigate]);
-  if (!currentUser) return null;
+  }, [currentUser, navigate, location.search]);
+
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-[#F1F5F9] flex flex-col items-center justify-center p-4">
+        <div className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
   const unreadCount = notifications.filter(n => n.userId === currentUser?.id && !n.isRead).length;
 
   return (
