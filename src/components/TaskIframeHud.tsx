@@ -53,7 +53,7 @@ export default function TaskIframeHud({
   const strokeDashoffset = circumference - (progressPercent / 100) * circumference;
 
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-full max-w-xl px-3 pointer-events-none transition-all duration-300">
+    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-50 w-full max-w-xl px-3 pointer-events-none transition-all duration-300">
       {/* Minimized Bubble State */}
       {isMinimized ? (
         <div className="pointer-events-auto bg-white/95 backdrop-blur-md border border-slate-200 shadow-xl rounded-full p-2 px-3 flex items-center justify-between gap-3 text-slate-800 mx-auto max-w-xs animate-in fade-in slide-in-from-bottom-3 duration-200">

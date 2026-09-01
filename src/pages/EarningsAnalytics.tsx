@@ -87,7 +87,7 @@ export default function EarningsAnalytics() {
   const userTaskTransactions = useMemo(() => {
     if (!currentUser) return [];
     return transactions.filter(
-      tx => tx.userId === currentUser.id && tx.type === 'task_earning'
+      tx => tx.userId === currentUser?.id && tx.type === 'task_earning'
     );
   }, [transactions, currentUser]);
 
@@ -120,7 +120,7 @@ export default function EarningsAnalytics() {
         // Deterministic baseline distribution based on day of week
         const baseOffset = (targetDate.getDay() + 1) * 0.75;
         if (i === 0 && currentUser?.dailyEarned) {
-          earnings = currentUser.dailyEarned;
+          earnings = currentUser?.dailyEarned;
           taskCount = Math.max(1, Math.round(earnings / 0.5));
         } else if (i <= 4) {
           earnings = parseFloat((baseOffset + (i % 2 === 0 ? 0.8 : 0.3)).toFixed(2));
@@ -156,7 +156,7 @@ export default function EarningsAnalytics() {
 
   const activePlan = useMemo(() => {
     if (!currentUser?.activePlanId) return null;
-    return plans.find(p => p.id === currentUser.activePlanId);
+    return plans.find(p => p.id === currentUser?.activePlanId);
   }, [currentUser, plans]);
 
   // Category breakdown
@@ -185,6 +185,7 @@ export default function EarningsAnalytics() {
       { name: 'Math Quizzes', value: quizCount, color: '#10b981', icon: HelpCircle },
     ];
   }, [userTaskTransactions, totalPeriodTasks]);
+
 
   if (!currentUser) return null;
 
@@ -308,7 +309,7 @@ export default function EarningsAnalytics() {
               <Zap className="w-3.5 h-3.5 text-indigo-500" />
             </div>
             <p className="text-lg font-black text-slate-800">
-              {formatCurrency(currentUser.dailyEarned || 0)}
+              {formatCurrency(currentUser?.dailyEarned || 0)}
               {activePlan && (
                 <span className="text-[10px] text-slate-400 font-normal ml-1">/ {formatCurrency(activePlan.dailyEarningLimit)}</span>
               )}

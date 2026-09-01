@@ -19,8 +19,8 @@ export const BottomNav = memo(function BottomNav() {
   ], []);
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 pb-safe z-30">
-      <div className="flex justify-around items-center h-14 max-w-md mx-auto">
+    <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-200 pb-safe z-30">
+      <div className="flex justify-around items-center h-14 w-full">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = path === item.path;
@@ -69,9 +69,9 @@ export const Layout = memo(function Layout({ children }: { children: React.React
   const unreadCount = notifications.filter(n => n.userId === currentUser?.id && !n.isRead).length;
 
   return (
-    <div className="h-[100dvh] bg-[#F1F5F9] pb-20 font-sans max-w-md mx-auto shadow-xl ring-1 ring-slate-900/5 sm:rounded-3xl sm:h-[calc(100vh-4rem)] sm:my-8 overflow-y-auto relative text-[#1E293B] no-scrollbar overflow-x-hidden">
-      <header className="fixed top-0 left-0 right-0 z-30 bg-white border-b border-slate-200 shadow-xs">
-        <div className="flex justify-between items-center max-w-md mx-auto px-3 py-2 h-12">
+    <div className="h-[100dvh] bg-[#F1F5F9] font-sans max-w-md mx-auto shadow-xl ring-1 ring-slate-900/5 sm:rounded-3xl sm:h-[calc(100vh-4rem)] sm:my-8 overflow-hidden relative text-[#1E293B] flex flex-col">
+      <header className="absolute top-0 left-0 right-0 z-30 bg-white border-b border-slate-200 shadow-xs">
+        <div className="flex justify-between items-center w-full px-3 py-2 h-12">
           <div className="flex items-center gap-2">
             <button 
               id="menu-toggle-btn"
@@ -122,14 +122,14 @@ export const Layout = memo(function Layout({ children }: { children: React.React
       {/* Drawer Overlay */}
       {isMenuOpen && (
         <div 
-          className="fixed inset-0 bg-slate-900/40 z-40 backdrop-blur-sm transition-opacity" 
+          className="absolute inset-0 bg-slate-900/40 z-40 backdrop-blur-sm transition-opacity" 
           onClick={() => setIsMenuOpen(false)}
         />
       )}
 
       {/* Side Navigation Menu */}
       <div 
-        className={`fixed inset-y-0 left-0 w-64 bg-white z-50 transform transition-transform duration-300 shadow-2xl flex flex-col sm:rounded-l-3xl ${
+        className={`absolute inset-y-0 left-0 w-64 bg-white z-50 transform transition-transform duration-300 shadow-2xl flex flex-col ${
           isMenuOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -283,7 +283,7 @@ export const Layout = memo(function Layout({ children }: { children: React.React
 
       </div>
 
-      <main className="p-3 pt-14 overflow-y-auto h-[calc(100vh-104px)] sm:h-[615px] no-scrollbar">
+      <main className="p-3 overflow-y-auto h-full pt-[60px] pb-[70px] no-scrollbar">
         {children}
       </main>
       <BottomNav />

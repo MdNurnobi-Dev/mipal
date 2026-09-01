@@ -11,16 +11,15 @@ export default function Wallet() {
   const { siteSettings } = useSiteSettings();
   const { formatCurrency, formatSignedCurrency } = useCurrency();
 
-  if (!currentUser) return null;
   
   const today = new Date().toISOString().split('T')[0];
-  const checkedIn = currentUser.lastCheckInDate === today;
+  const checkedIn = currentUser?.lastCheckInDate === today;
   
-  let currentStreak = currentUser.checkInStreak || 0;
+  let currentStreak = currentUser?.checkInStreak || 0;
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
   const yesterdayStr = yesterday.toISOString().split('T')[0];
-  if (currentUser.lastCheckInDate !== yesterdayStr && currentUser.lastCheckInDate !== today && currentUser.lastCheckInDate) {
+  if (currentUser?.lastCheckInDate !== yesterdayStr && currentUser?.lastCheckInDate !== today && currentUser?.lastCheckInDate) {
     currentStreak = 0;
   }
   
@@ -31,7 +30,7 @@ export default function Wallet() {
     alert(result.message);
   };
 
-  const userTransactions = transactions.filter(tx => tx.userId === currentUser.id);
+  const userTransactions = transactions.filter(tx => tx.userId === currentUser?.id);
   
   const getTxIcon = (type: string) => {
     switch (type) {
@@ -54,6 +53,8 @@ export default function Wallet() {
     return ['deposit', 'task_earning', 'referral_bonus', 'daily_reward'].includes(type) ? '+' : '-';
   };
 
+  if (!currentUser) return null;
+
   return (
     <div className="space-y-4 pb-6 max-w-lg mx-auto">
       {/* Premium FinTech Credit Card */}
@@ -69,7 +70,7 @@ export default function Wallet() {
               <WalletIcon className="w-3.5 h-3.5" />
               <span className="text-[9px] font-medium text-slate-300 uppercase tracking-widest">Available Balance</span>
             </div>
-            <span className="text-2xl font-black tracking-tight">{formatCurrency(currentUser.balance)}</span>
+            <span className="text-2xl font-black tracking-tight">{formatCurrency(currentUser?.balance)}</span>
           </div>
           {/* Card Chip */}
           <div className="flex flex-col items-end gap-3 mt-1">
@@ -86,12 +87,12 @@ export default function Wallet() {
              <span>****</span>
              <span>****</span>
              <span>****</span>
-             <span>{String(currentUser.id).replace(/\D/g, '').padEnd(4, '8').substring(0, 4)}</span>
+             <span>{String(currentUser?.id).replace(/\D/g, '').padEnd(4, '8').substring(0, 4)}</span>
           </div>
           <div className="flex justify-between items-end">
             <div>
                <div className="text-[7px] text-slate-400 uppercase tracking-widest mb-0.5">Cardholder</div>
-               <div className="text-[11px] font-bold uppercase tracking-wider truncate max-w-[110px]">{currentUser.name}</div>
+               <div className="text-[11px] font-bold uppercase tracking-wider truncate max-w-[110px]">{currentUser?.name}</div>
             </div>
             <div>
                <div className="text-[7px] text-slate-400 uppercase tracking-widest mb-0.5 text-right">Expires</div>

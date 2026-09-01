@@ -4,9 +4,8 @@ import { useApp } from '../context/AppContext';
 export default function Notifications() {
   const { notifications, currentUser, markNotificationRead, markAllNotificationsRead } = useApp();
 
-  if (!currentUser) return null;
   
-  const userNotifications = notifications.filter(n => n.userId === currentUser.id);
+  const userNotifications = notifications.filter(n => n.userId === currentUser?.id);
   const unreadCount = userNotifications.filter(n => !n.isRead).length;
 
   const getIcon = (type: string) => {
@@ -17,6 +16,8 @@ export default function Notifications() {
       default: return <Info className="w-4 h-4 text-indigo-500" />;
     }
   };
+
+  if (!currentUser) return null;
 
   return (
     <div className="space-y-4 pb-6">
@@ -29,7 +30,7 @@ export default function Notifications() {
         </div>
         {unreadCount > 0 && (
           <button 
-            onClick={() => markAllNotificationsRead(currentUser.id)}
+            onClick={() => markAllNotificationsRead(currentUser?.id)}
             className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors"
           >
             Mark all read

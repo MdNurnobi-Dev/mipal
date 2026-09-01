@@ -110,7 +110,7 @@ interface AppState {
   updateSiteSettings: (settings: Partial<SiteSettings>) => Promise<{ success: boolean; settings?: SiteSettings }>;
   refetchData: () => Promise<void>;
   refreshSettings: () => Promise<void>;
-  loginUser: (email: string, pass: string) => Promise<{success: boolean, message?: string}>;
+  loginUser: (email: string, pass: string, twoFactorCode?: string) => Promise<{success: boolean, message?: string, requires2FA?: boolean}>;
   adminLogin: (email: string, pass: string) => Promise<{success: boolean, message?: string}>;
   logout: () => void;
   isAdminAuthed: boolean;
@@ -1044,14 +1044,17 @@ const registerUser = async (userData: { name: string; email: string; password?: 
 
 
   
-  const loginUser = async (email: string, pass: string) => {
+  const loginUser = async (email: string, pass: string, twoFactorCode?: string) => {
     try {
       const res = await apiFetch('/api/login', { credentials: 'include',
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password: pass })
+        body: JSON.stringify({ email, password: pass, twoFactorCode })
       });
       const data = await res.json();
+      if (data.requires2FA) {
+        return { success: false, requires2FA: true };
+      }
       if (data.success) {
         setCurrentUser(data.user);
         return { success: true };

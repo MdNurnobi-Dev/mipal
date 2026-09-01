@@ -25,7 +25,6 @@ export default function Deposit() {
   const { siteSettings } = useSiteSettings();
   const { currencySymbol, formatCurrency } = useCurrency();
 
-  if (!currentUser) return null;
   
   const activeGateways = useMemo(() => {
     return gateways.filter(gw => gw.isActive);
@@ -105,8 +104,8 @@ export default function Deposit() {
     
     setTimeout(() => {
       addTransaction({
-        userId: currentUser.id,
-        userName: currentUser.name,
+        userId: currentUser?.id,
+        userName: currentUser?.name,
         type: 'deposit',
         amount: numAmount,
         method: selectedGateway.name,
@@ -120,6 +119,8 @@ export default function Deposit() {
   };
 
   const quickAmounts = [100, 200, 500, 1000, 2000, 5000];
+
+  if (!currentUser) return null;
 
   return (
     <div className="space-y-4 pb-8 max-w-lg mx-auto">
@@ -244,28 +245,26 @@ export default function Deposit() {
 
           {/* Step 3: Account Number & Copy Box */}
           {selectedGateway && (
-            <div className="bg-gradient-to-br from-indigo-900 via-slate-900 to-indigo-950 text-white p-4 rounded-2xl shadow-md border border-indigo-500/20 space-y-3.5 relative overflow-hidden">
-              <div className="absolute right-0 top-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none"></div>
-
+            <div className="bg-indigo-50 p-4 rounded-2xl border border-indigo-100 space-y-3.5 relative overflow-hidden">
               <div className="flex items-center justify-between relative z-10">
                 <div className="flex items-center gap-2">
                   <PaymentGatewayLogo name={selectedGateway.name} size="sm" />
-                  <span className="font-bold text-xs text-indigo-200">
+                  <span className="font-bold text-xs text-indigo-900">
                     {selectedGateway.name} Official Account
                   </span>
                 </div>
-                <span className="text-[10px] font-semibold bg-white/10 px-2 py-0.5 rounded-full text-indigo-300">
+                <span className="text-[10px] font-semibold bg-indigo-100 px-2 py-0.5 rounded-full text-indigo-700">
                   {gatewayInfo.type}
                 </span>
               </div>
 
               {/* Number Copy Box */}
-              <div className="bg-black/30 border border-white/10 rounded-xl p-3 flex items-center justify-between gap-2 relative z-10">
+              <div className="bg-white border border-indigo-50 rounded-xl p-3 flex items-center justify-between gap-2 relative z-10 shadow-sm">
                 <div className="min-w-0 flex-1">
-                  <p className="text-[9px] text-slate-400 uppercase tracking-widest font-semibold">
+                  <p className="text-[9px] text-slate-500 uppercase tracking-widest font-semibold">
                     {gatewayInfo.isCrypto ? 'Wallet Address / Pay ID' : 'Account Number'}
                   </p>
-                  <p className="font-mono font-bold text-sm sm:text-base text-yellow-400 tracking-wider truncate mt-0.5">
+                  <p className="font-mono font-bold text-sm sm:text-base text-slate-800 tracking-wider truncate mt-0.5 select-all">
                     {gatewayInfo.number}
                   </p>
                 </div>
@@ -274,8 +273,8 @@ export default function Deposit() {
                   onClick={() => handleCopy(gatewayInfo.number, 'acc_num')}
                   className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex-shrink-0 cursor-pointer shadow-sm ${
                     copiedKey === 'acc_num' 
-                      ? 'bg-emerald-500 text-white' 
-                      : 'bg-indigo-500 hover:bg-indigo-400 text-white'
+                      ? 'bg-emerald-500 text-white shadow-emerald-500/20' 
+                      : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-500/20'
                   }`}
                 >
                   {copiedKey === 'acc_num' ? (
@@ -293,18 +292,18 @@ export default function Deposit() {
               </div>
 
               {/* Amount Copy Box */}
-              <div className="bg-black/30 border border-white/10 rounded-xl p-2.5 flex items-center justify-between gap-2 relative z-10">
+              <div className="bg-white border border-indigo-50 rounded-xl p-2.5 flex items-center justify-between gap-2 relative z-10 shadow-sm">
                 <div>
-                  <p className="text-[9px] text-slate-400 uppercase tracking-widest font-semibold">Amount to Send</p>
-                  <p className="font-bold text-sm text-white">{formatCurrency(amount || '0')}</p>
+                  <p className="text-[9px] text-slate-500 uppercase tracking-widest font-semibold">Amount to Send</p>
+                  <p className="font-bold text-sm text-slate-800">{formatCurrency(amount || '0')}</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => handleCopy(amount || '0', 'acc_amount')}
                   className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all flex-shrink-0 cursor-pointer ${
                     copiedKey === 'acc_amount' 
-                      ? 'bg-emerald-500 text-white' 
-                      : 'bg-white/10 hover:bg-white/20 text-indigo-200'
+                      ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' 
+                      : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200'
                   }`}
                 >
                   {copiedKey === 'acc_amount' ? (
@@ -322,12 +321,12 @@ export default function Deposit() {
               </div>
 
               {/* How to Pay Step-by-Step Instructions */}
-              <div className="bg-white/5 border border-white/10 rounded-xl p-3 space-y-2 relative z-10">
-                <p className="text-[10px] font-bold text-indigo-300 uppercase tracking-wider flex items-center gap-1.5">
+              <div className="bg-white/60 border border-indigo-100/50 rounded-xl p-3 space-y-2 relative z-10">
+                <p className="text-[10px] font-bold text-indigo-800 uppercase tracking-wider flex items-center gap-1.5">
                   <Info className="w-3.5 h-3.5" />
                   Payment Instructions (পেমেন্ট নিয়মাবলী)
                 </p>
-                <div className="text-[11px] text-slate-200 whitespace-pre-wrap font-sans leading-relaxed space-y-1">
+                <div className="text-[11px] text-slate-700 whitespace-pre-wrap font-sans leading-relaxed space-y-1">
                   {selectedGateway.instructions || selectedGateway.details || (
                     gatewayInfo.isCrypto
                       ? `1. Open your crypto app (Binance / TrustWallet)\n2. Send exact amount to the TRC20/BEP20 address or Binance Pay ID above\n3. Copy the TxID / Transaction Hash\n4. Paste below and submit`
@@ -450,7 +449,7 @@ export default function Deposit() {
 
             <button
               onClick={() => navigate('/wallet')}
-              className="w-full bg-slate-900 text-white font-bold py-2.5 rounded-xl hover:bg-slate-800 transition-colors text-xs"
+              className="w-full bg-indigo-600 text-white font-bold py-2.5 rounded-xl hover:bg-indigo-700 transition-colors text-xs"
             >
               Go to Wallet
             </button>

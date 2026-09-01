@@ -7,7 +7,6 @@ export default function Plan() {
   const { plans, currentUser, purchasePlan, transactions } = useApp();
   const { formatCurrency } = useCurrency();
 
-  if (!currentUser) return null;
   const [message, setMessage] = useState<{text: string, type: 'success' | 'error'} | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'available' | 'my_plans'>('available');
@@ -22,13 +21,15 @@ export default function Plan() {
     }
   };
 
-  const activePlan = plans.find(p => p.id === currentUser.activePlanId);
+  const activePlan = plans.find(p => p.id === currentUser?.activePlanId);
   const today = new Date().toISOString().split('T')[0];
-  const currentDailyEarned = currentUser.lastEarnedDate === today ? (currentUser.dailyEarned || 0) : 0;
+  const currentDailyEarned = currentUser?.lastEarnedDate === today ? (currentUser?.dailyEarned || 0) : 0;
   
   const myPlanHistory = transactions
-    .filter(tx => tx.userId === currentUser.id && tx.type === 'plan_purchase')
+    .filter(tx => tx.userId === currentUser?.id && tx.type === 'plan_purchase')
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  if (!currentUser) return null;
 
   return (
     <div className="space-y-4">
@@ -62,7 +63,7 @@ export default function Plan() {
       {activeTab === 'available' && (
         <div className="grid gap-3">
           {plans.map((plan) => {
-            const isActive = currentUser.activePlanId === plan.id;
+            const isActive = currentUser?.activePlanId === plan.id;
             const isConfirming = confirmId === plan.id;
 
             return (
@@ -206,7 +207,7 @@ export default function Plan() {
                     <div className="text-right">
                       <p className="text-xs font-bold text-indigo-600">{formatCurrency(tx.amount)}</p>
                       <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                        {tx.date.startsWith(today) && currentUser.activePlanId ? 'Current' : 'Expired'}
+                        {tx.date.startsWith(today) && currentUser?.activePlanId ? 'Current' : 'Expired'}
                       </span>
                     </div>
                   </div>

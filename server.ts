@@ -211,17 +211,112 @@ async function startServer() {
   });
 
   app.post("/api/login", async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password, twoFactorCode } = req.body;
     try {
       const allUsers = await db.select().from(users);
       const user = allUsers.find(u => u.email === email && u.password === password);
       if (!user) {
         return res.status(401).json({ error: "Invalid credentials" });
       }
+
+      if (user.twoFactorEnabled) {
+        if (!twoFactorCode) {
+          return res.json({ requires2FA: true });
+        }
+        
+        // Dynamic import speakeasy
+        const speakeasy = (await import('speakeasy')).default || await import('speakeasy');
+        const isValid = speakeasy.totp.verify({
+          secret: user.twoFactorSecret || '',
+          encoding: 'base32',
+          token: twoFactorCode
+        });
+        
+        if (!isValid) {
+          return res.status(401).json({ error: "Invalid 2FA code" });
+        }
+      }
+
       const token = jwt.sign({ id: user.id, role: 'user' }, JWT_SECRET, { expiresIn: '7d' });
       res.cookie('token', token, { httpOnly: true, secure: true, sameSite: 'none' });
-      res.json({ success: true, user: { ...user, password: '' } });
+      res.json({ success: true, user: { ...user, password: '', twoFactorSecret: '' } });
     } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.post("/api/2fa/generate", async (req, res) => {
+    const token = req.cookies?.token;
+    if (!token) return res.status(401).json({ error: "Not logged in" });
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET) as any;
+      const [user] = await db.select().from(users).where(eq(users.id, decoded.id)).limit(1);
+      if (!user) return res.status(401).json({ error: "User not found" });
+
+      const speakeasy = (await import('speakeasy')).default || await import('speakeasy');
+      const secretObj = speakeasy.generateSecret({ length: 20, name: `Earnify (${user.email || 'User'})` });
+      const secret = secretObj.base32;
+      const otpauthUrl = secretObj.otpauth_url;
+
+      // Save secret temporarily in db (or permanently, but only enable when verified)
+      await db.update(users).set({ twoFactorSecret: secret }).where(eq(users.id, user.id));
+
+      res.json({ success: true, secret, otpauthUrl });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.post("/api/2fa/enable", async (req, res) => {
+    const token = req.cookies?.token;
+    if (!token) return res.status(401).json({ error: "Not logged in" });
+    const { code } = req.body;
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET) as any;
+      const [user] = await db.select().from(users).where(eq(users.id, decoded.id)).limit(1);
+      if (!user) return res.status(401).json({ error: "User not found" });
+
+      const speakeasy = (await import('speakeasy')).default || await import('speakeasy');
+      const isValid = speakeasy.totp.verify({
+        secret: user.twoFactorSecret || '',
+        encoding: 'base32',
+        token: code
+      });
+      if (!isValid) {
+        return res.status(400).json({ error: "Invalid 2FA code" });
+      }
+
+      await db.update(users).set({ twoFactorEnabled: true }).where(eq(users.id, user.id));
+      invalidateDataCache();
+      res.json({ success: true });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.post("/api/2fa/disable", async (req, res) => {
+    const token = req.cookies?.token;
+    if (!token) return res.status(401).json({ error: "Not logged in" });
+    const { code } = req.body;
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET) as any;
+      const [user] = await db.select().from(users).where(eq(users.id, decoded.id)).limit(1);
+      if (!user) return res.status(401).json({ error: "User not found" });
+
+      const speakeasy = (await import('speakeasy')).default || await import('speakeasy');
+      const isValid = speakeasy.totp.verify({
+        secret: user.twoFactorSecret || '',
+        encoding: 'base32',
+        token: code
+      });
+      if (!isValid) {
+        return res.status(400).json({ error: "Invalid 2FA code" });
+      }
+
+      await db.update(users).set({ twoFactorEnabled: false, twoFactorSecret: null }).where(eq(users.id, user.id));
+      invalidateDataCache();
+      res.json({ success: true });
+    } catch (e: any) {
       res.status(500).json({ error: e.message });
     }
   });

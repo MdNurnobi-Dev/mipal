@@ -30,6 +30,10 @@ export default function Auth({ defaultMode }: AuthProps) {
   const [referralCode, setReferralCode] = useState(initialReferralCode);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+  
+  // 2FA states
+  const [show2FA, setShow2FA] = useState(false);
+  const [twoFactorCode, setTwoFactorCode] = useState('');
 
   const navigate = useNavigate();
   const { currentUser, siteSettings, registerUser, referralSettings, loginUser, logout } = useApp();
@@ -81,6 +85,10 @@ export default function Auth({ defaultMode }: AuthProps) {
           loginUser(email, password).then((loginRes) => {
             if (loginRes.success) {
               navigate('/');
+            } else if (loginRes.requires2FA) {
+              setShow2FA(true);
+              setIsSubmitting(false);
+              setMessage({ text: 'Two-factor authentication required.', type: 'success' });
             } else {
               setIsLogin(true);
               setIsSubmitting(false);
@@ -88,7 +96,13 @@ export default function Auth({ defaultMode }: AuthProps) {
           });
         }, 500);
       } else {
-        const res = await loginUser(email, password);
+        const res = await loginUser(email, password, show2FA ? twoFactorCode : undefined);
+        if (res.requires2FA) {
+          setShow2FA(true);
+          setIsSubmitting(false);
+          setMessage(null);
+          return;
+        }
         if (res.success) {
           setMessage({ text: 'Login successful! Redirecting...', type: 'success' });
           setTimeout(() => navigate('/'), 600);
@@ -186,53 +200,72 @@ export default function Auth({ defaultMode }: AuthProps) {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-3">
-          {!isLogin && (
-            <div className="relative">
-              <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input 
-                type="text" 
-                placeholder="Full Name" 
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-9 pr-3 outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-xs"
-                required 
-              />
-            </div>
+          {!show2FA && (
+            <>
+              {!isLogin && (
+                <div className="relative">
+                  <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input 
+                    type="text" 
+                    placeholder="Full Name" 
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-9 pr-3 outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-xs"
+                    required 
+                  />
+                </div>
+              )}
+
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input 
+                  type="email" 
+                  placeholder="Email Address" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-9 pr-3 outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-xs"
+                  required 
+                />
+              </div>
+
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input 
+                  type="password" 
+                  placeholder="Password" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-9 pr-3 outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-xs"
+                  required 
+                />
+              </div>
+
+              {!isLogin && (
+                <div className="relative">
+                  <Gift className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-indigo-500" />
+                  <input 
+                    type="text" 
+                    placeholder="Referral Code (Optional)" 
+                    value={referralCode}
+                    onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                    className="w-full bg-indigo-50/40 border border-indigo-100 rounded-xl py-2.5 pl-9 pr-3 outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white font-mono uppercase transition-all text-xs text-indigo-900"
+                  />
+                </div>
+              )}
+            </>
           )}
-
-          <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input 
-              type="email" 
-              placeholder="Email Address" 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-9 pr-3 outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-xs"
-              required 
-            />
-          </div>
-
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input 
-              type="password" 
-              placeholder="Password" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-9 pr-3 outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-xs"
-              required 
-            />
-          </div>
-
-          {!isLogin && (
-            <div className="relative">
-              <Gift className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-indigo-500" />
+          
+          {show2FA && (
+            <div className="relative mt-2">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-indigo-500" />
               <input 
                 type="text" 
-                placeholder="Referral Code (Optional)" 
-                value={referralCode}
-                onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
-                className="w-full bg-indigo-50/40 border border-indigo-100 rounded-xl py-2.5 pl-9 pr-3 outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white font-mono uppercase transition-all text-xs text-indigo-900"
+                placeholder="6-Digit 2FA Code" 
+                value={twoFactorCode}
+                onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                className="w-full bg-indigo-50/40 border border-indigo-100 rounded-xl py-2.5 pl-9 pr-3 outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white font-mono transition-all text-xs text-indigo-900 tracking-[0.2em] text-center"
+                required={show2FA}
+                autoFocus
               />
             </div>
           )}

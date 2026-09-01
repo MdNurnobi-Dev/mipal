@@ -15,11 +15,10 @@ export default function Earnings() {
   const { formatCurrency, formatSignedCurrency } = useCurrency();
   const navigate = useNavigate();
 
-  if (!currentUser) return null;
 
-  const activePlan = plans.find(p => p.id === currentUser.activePlanId);
+  const activePlan = plans.find(p => p.id === currentUser?.activePlanId);
   const today = new Date().toISOString().split('T')[0];
-  const currentDailyEarned = currentUser.lastEarnedDate === today ? (currentUser.dailyEarned || 0) : 0;
+  const currentDailyEarned = currentUser?.lastEarnedDate === today ? (currentUser?.dailyEarned || 0) : 0;
   
   const hasPlan = !!activePlan;
   const isLimitReached = hasPlan ? (currentDailyEarned >= activePlan!.dailyEarningLimit) : false;
@@ -186,6 +185,8 @@ export default function Earnings() {
   const formattedMedia = activeUrl ? formatMediaUrl(activeUrl) : null;
   const progressPercent = initialDuration > 0 ? Math.round(((initialDuration - timer) / initialDuration) * 100) : 100;
 
+  if (!currentUser) return null;
+
   return (
     <div className="space-y-4">
       {earnedFeedback && (
@@ -198,7 +199,7 @@ export default function Earnings() {
       <div className="bg-indigo-600 rounded-xl p-4 text-white shadow-sm relative overflow-hidden">
         <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full blur-2xl -mr-8 -mt-8"></div>
         <h2 className="text-indigo-100 text-[10px] font-semibold uppercase tracking-wider mb-1">Available Balance</h2>
-        <div className="text-2xl font-bold text-white">{formatCurrency(currentUser.balance)}</div>
+        <div className="text-2xl font-bold text-white">{formatCurrency(currentUser?.balance)}</div>
         
         {hasPlan ? (
           <div className="mt-3 bg-indigo-700/50 p-2.5 rounded-lg border border-indigo-500/50 flex justify-between items-center relative z-10">
@@ -283,7 +284,7 @@ export default function Earnings() {
 
       {/* Task Execution Modal (Video Ad & Direct Website Visit with Countdown) */}
       {activeTask && (activeTask.type === 'Video' || activeTask.type === 'Website') && (
-        <div className="fixed inset-0 z-50 bg-white flex flex-col">
+        <div className="absolute inset-0 z-50 bg-white flex flex-col">
           {/* Top Countdown & Status Bar */}
           <div className="bg-white text-slate-800 p-3 px-4 flex justify-between items-center border-b border-slate-200 shrink-0 shadow-sm">
             <div className="flex items-center gap-2.5 min-w-0">

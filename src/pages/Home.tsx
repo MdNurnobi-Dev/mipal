@@ -23,7 +23,7 @@ export default function Home() {
   const navigate = useNavigate();
   const [newPostContent, setNewPostContent] = useState('');
 
-  if (!currentUser) return null;
+  
 
   const activeBanners = giveawayBanners.filter(b => b.isActive);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -44,9 +44,9 @@ export default function Home() {
     if (!newPostContent.trim()) return;
 
     addPost({
-      userId: currentUser.id,
-      userName: currentUser.name,
-      userAvatar: currentUser.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.name}`,
+      userId: currentUser?.id,
+      userName: currentUser?.name,
+      userAvatar: currentUser?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser?.name}`,
       content: newPostContent
     });
 
@@ -61,18 +61,21 @@ export default function Home() {
     e.preventDefault();
     if (!commentText.trim()) return;
     addPostComment(postId, {
-      userId: currentUser.id,
-      userName: currentUser.name,
-      userAvatar: currentUser.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.name}`,
+      userId: currentUser?.id,
+      userName: currentUser?.name,
+      userAvatar: currentUser?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser?.name}`,
       content: commentText
     });
     setCommentText('');
   };
 
-  const activePlan = plans.find(p => p.id === currentUser.activePlanId);
+  const activePlan = plans.find(p => p.id === currentUser?.activePlanId);
   const today = new Date().toISOString().split('T')[0];
-  const currentDailyEarned = currentUser.lastEarnedDate === today ? (currentUser.dailyEarned || 0) : 0;
+  const currentDailyEarned = currentUser?.lastEarnedDate === today ? (currentUser?.dailyEarned || 0) : 0;
   const { formatCurrency } = useCurrency();
+
+
+  if (!currentUser) return null;
 
   return (
     <div className="space-y-4 max-w-lg mx-auto">
@@ -165,7 +168,7 @@ export default function Home() {
       <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
         <div className="flex gap-2.5">
           <img 
-            src={currentUser.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.name}`} 
+            src={currentUser?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser?.name}`} 
             alt="Avatar" 
             className="w-8 h-8 rounded-full bg-slate-100 object-cover" 
           />
@@ -180,7 +183,7 @@ export default function Home() {
             <div className="flex justify-between items-center mt-2.5">
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
-                  Balance: <span className="text-green-600">{formatCurrency(currentUser.balance)}</span>
+                  Balance: <span className="text-green-600">{formatCurrency(currentUser?.balance)}</span>
                 </span>
               </div>
               <button 
@@ -202,7 +205,7 @@ export default function Home() {
 
       {/* Feed Section */}
       <div className="space-y-3">
-        {posts.filter(p => p.status === 'approved' || p.userId === currentUser.id).map(post => (
+        {posts.filter(p => p.status === 'approved' || p.userId === currentUser?.id).map(post => (
           <div key={post.id} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="p-3 border-b border-slate-50 flex items-center gap-2 bg-slate-50/50">
               <img src={post.userAvatar} alt={post.userName} className="w-7 h-7 rounded-full bg-slate-200" />
@@ -218,13 +221,13 @@ export default function Home() {
               
               <div className="flex gap-4 text-slate-400 text-[10px] font-medium">
                 <button 
-                  onClick={() => togglePostLike(post.id, currentUser.id)}
+                  onClick={() => togglePostLike(post.id, currentUser?.id)}
                   className={cn(
                     "flex items-center gap-1 transition-colors",
                     post.isLiked ? "text-indigo-600" : "hover:text-indigo-500"
                   )}
                 >
-                  <Heart className={cn("w-3.5 h-3.5", post.likedBy?.includes(currentUser.id) && "fill-current")} />
+                  <Heart className={cn("w-3.5 h-3.5", post.likedBy?.includes(currentUser?.id) && "fill-current")} />
                   Like ({post.likes})
                 </button>
                 <button 

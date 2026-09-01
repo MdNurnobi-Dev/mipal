@@ -9,6 +9,7 @@ export const users = pgTable("users", {
   phone: text("phone"),
   password: text("password"),
   twoFactorEnabled: boolean("two_factor_enabled").default(false),
+  twoFactorSecret: text("two_factor_secret"),
   language: text("language").default("en"),
   theme: text("theme").default("light"),
   balance: real("balance").default(0).notNull(),

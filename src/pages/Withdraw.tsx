@@ -21,7 +21,6 @@ export default function Withdraw() {
   const { siteSettings } = useSiteSettings();
   const { currencySymbol, formatCurrency } = useCurrency();
 
-  if (!currentUser) return null;
   const activeGateways = useMemo(() => gateways.filter(gw => gw.isActive), [gateways]);
   
   const [amount, setAmount] = useState('');
@@ -32,7 +31,7 @@ export default function Withdraw() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successModal, setSuccessModal] = useState(false);
 
-  const balance = currentUser.balance;
+  const balance = currentUser?.balance;
 
   const selectedGateway = useMemo(() => {
     return activeGateways.find(g => g.id === selectedGwId) || activeGateways[0];
@@ -70,8 +69,8 @@ export default function Withdraw() {
       const detailsString = `${selectedGateway?.name || 'Manual'} (${accountType}) | Acc: ${accountNumber.trim()}${notes ? ` | Notes: ${notes.trim()}` : ''}`;
       
       addTransaction({
-        userId: currentUser.id,
-        userName: currentUser.name,
+        userId: currentUser?.id,
+        userName: currentUser?.name,
         type: 'withdraw',
         amount: withdrawAmount,
         method: selectedGateway?.name || 'Manual Transfer',
@@ -88,6 +87,8 @@ export default function Withdraw() {
   };
 
   const quickPercentages = [25, 50, 75, 100];
+
+  if (!currentUser) return null;
 
   return (
     <div className="space-y-4 pb-8 max-w-lg mx-auto">
@@ -112,21 +113,20 @@ export default function Withdraw() {
       </div>
 
       {/* Available Balance Card */}
-      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 p-4 rounded-2xl text-white shadow-md relative overflow-hidden flex items-center justify-between border border-white/10">
-        <div className="absolute -right-4 -top-4 w-24 h-24 bg-indigo-500/20 rounded-full blur-2xl"></div>
+      <div className="bg-white p-4 rounded-2xl shadow-sm relative overflow-hidden flex items-center justify-between border border-slate-200">
         <div>
-          <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1.5">
-            <WalletIcon className="w-3.5 h-3.5 text-indigo-400" />
+          <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-1 flex items-center gap-1.5">
+            <WalletIcon className="w-3.5 h-3.5 text-indigo-600" />
             Available Balance
           </p>
-          <div className="text-2xl font-black text-emerald-400 tracking-tight">
+          <div className="text-2xl font-black text-slate-800 tracking-tight">
             {formatCurrency(balance)}
           </div>
         </div>
         <button
           type="button"
           onClick={handleMax}
-          className="bg-white/10 hover:bg-white/20 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition-colors cursor-pointer border border-white/10"
+          className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1.5 rounded-xl transition-colors cursor-pointer border border-indigo-100"
         >
           Withdraw All
         </button>
@@ -292,7 +292,7 @@ export default function Withdraw() {
         <button 
           type="submit"
           disabled={isSubmitting || !amount || parseFloat(amount) > balance || parseFloat(amount) < minWithdraw}
-          className="w-full bg-slate-900 text-white font-bold py-3.5 px-4 text-sm rounded-xl hover:bg-slate-800 transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          className="w-full bg-indigo-600 text-white font-bold py-3.5 px-4 text-sm rounded-xl hover:bg-indigo-700 transition-all shadow-md shadow-indigo-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
           {isSubmitting ? (
             <>
@@ -340,7 +340,7 @@ export default function Withdraw() {
 
             <button
               onClick={() => navigate('/wallet')}
-              className="w-full bg-slate-900 text-white font-bold py-2.5 rounded-xl hover:bg-slate-800 transition-colors text-xs"
+              className="w-full bg-indigo-600 text-white font-bold py-2.5 rounded-xl hover:bg-indigo-700 transition-colors text-xs"
             >
               Back to Wallet
             </button>

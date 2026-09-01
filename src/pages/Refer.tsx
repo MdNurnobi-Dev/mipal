@@ -27,7 +27,6 @@ export default function Refer() {
   const { currentUser, referralSettings, users, plans, transactions } = useApp();
   const { formatCurrency } = useCurrency();
 
-  if (!currentUser) return null;
 
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
@@ -39,11 +38,11 @@ export default function Refer() {
 
   // Calculate real referrals for this user
   const referredUsers = useMemo(() => {
-    return users.filter(u => u.referredBy === currentUser.referralCode);
-  }, [users, currentUser.referralCode]);
+    return users.filter(u => u.referredBy === currentUser?.referralCode);
+  }, [users, currentUser?.referralCode]);
 
   const totalReferralsCount = referredUsers.length;
-  const totalEarnedAmount = currentUser.referralEarnings || 0;
+  const totalEarnedAmount = currentUser?.referralEarnings || 0;
 
   // Filtered referred members
   const filteredMembers = useMemo(() => {
@@ -58,23 +57,23 @@ export default function Refer() {
   // Referral Bonus History transactions
   const referralTransactions = useMemo(() => {
     return transactions
-      .filter(t => t.userId === currentUser.id && t.type === 'referral_bonus' && t.status === 'approved')
+      .filter(t => t.userId === currentUser?.id && t.type === 'referral_bonus' && t.status === 'approved')
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [transactions, currentUser.id]);
+  }, [transactions, currentUser?.id]);
 
-  const currentPlanBonus = currentUser.activePlanId 
-    ? (referralSettings.taskEarningBonusPercentByPlan[currentUser.activePlanId] || 0) 
+  const currentPlanBonus = currentUser?.activePlanId 
+    ? (referralSettings.taskEarningBonusPercentByPlan[currentUser?.activePlanId] || 0) 
     : 0;
 
-  const currentPlan = plans.find(p => p.id === currentUser.activePlanId);
+  const currentPlan = plans.find(p => p.id === currentUser?.activePlanId);
 
   // Dynamic share link
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
-  const inviteLink = `${origin}/auth?ref=${currentUser.referralCode || ''}`;
+  const inviteLink = `${origin}/auth?ref=${currentUser?.referralCode || ''}`;
 
   const handleCopyCode = () => {
-    if (currentUser.referralCode) {
-      navigator.clipboard.writeText(currentUser.referralCode);
+    if (currentUser?.referralCode) {
+      navigator.clipboard.writeText(currentUser?.referralCode);
       setCopiedCode(true);
       setTimeout(() => setCopiedCode(false), 2000);
     }
@@ -93,7 +92,7 @@ export default function Refer() {
       try {
         await navigator.share({
           title: 'Join Earnify and earn daily rewards!',
-          text: `Use my invite code ${currentUser.referralCode} to get an instant ${formatCurrency(newUserBonus)} welcome bonus!`,
+          text: `Use my invite code ${currentUser?.referralCode} to get an instant ${formatCurrency(newUserBonus)} welcome bonus!`,
           url: inviteLink,
         });
       } catch (err) {
@@ -107,6 +106,8 @@ export default function Refer() {
   const shareText = encodeURIComponent(`Sign up on Earnify using my invite link and get an instant ${formatCurrency(newUserBonus)} welcome bonus! ${inviteLink}`);
   const whatsappUrl = `https://api.whatsapp.com/send?text=${shareText}`;
   const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${encodeURIComponent(`Get instant ${formatCurrency(newUserBonus)} welcome bonus on Earnify!`)}`;
+
+  if (!currentUser) return null;
 
   return (
     <div className="space-y-4 max-w-lg mx-auto pb-10">
@@ -127,7 +128,7 @@ export default function Refer() {
           {/* Referral Code Box */}
           <div className="bg-white/15 backdrop-blur-md p-1.5 rounded-xl flex items-center border border-white/25 mx-auto max-w-[290px] shadow-sm">
             <div className="flex-1 px-3 font-mono font-black tracking-widest text-lg text-amber-300 text-center select-all">
-              {currentUser.referralCode || 'N/A'}
+              {currentUser?.referralCode || 'N/A'}
             </div>
             <button 
               onClick={handleCopyCode}
@@ -320,7 +321,7 @@ export default function Refer() {
                     <span className="text-[10px] font-bold text-slate-600 block">Your Current Plan:</span>
                     <span className="text-xs font-black text-slate-800">{currentPlan?.name || 'Free Tier (0%)'}</span>
                   </div>
-                  {!currentUser.activePlanId ? (
+                  {!currentUser?.activePlanId ? (
                     <Link
                       to="/plan"
                       className="px-2.5 py-1 bg-indigo-600 text-white text-[10px] font-bold rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-1"
