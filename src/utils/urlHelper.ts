@@ -70,8 +70,8 @@ export function formatMediaUrl(rawUrl: string): FormattedMedia {
     return {
       type: 'youtube',
       videoId: ytId,
-      // Standard YouTube embed compatible with all browsers & mobile devices
-      embedUrl: `https://www.youtube.com/embed/${ytId}?autoplay=1&mute=0&controls=1&rel=0&playsinline=1&enablejsapi=1`,
+      // Standard YouTube embed compatible with all browsers & mobile devices. Disable controls and branding.
+      embedUrl: `https://www.youtube.com/embed/${ytId}?autoplay=1&mute=0&controls=0&rel=0&playsinline=1&enablejsapi=1&modestbranding=1&fs=0`,
       thumbnailUrl: `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`,
       originalUrl: url.startsWith('http') ? url : `https://www.youtube.com/watch?v=${ytId}`,
       hostname: 'youtube.com'

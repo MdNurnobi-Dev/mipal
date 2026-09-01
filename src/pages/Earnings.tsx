@@ -283,34 +283,34 @@ export default function Earnings() {
 
       {/* Task Execution Modal (Video Ad & Direct Website Visit with Countdown) */}
       {activeTask && (activeTask.type === 'Video' || activeTask.type === 'Website') && (
-        <div className="fixed inset-0 z-50 bg-slate-950 flex flex-col">
+        <div className="fixed inset-0 z-50 bg-white flex flex-col">
           {/* Top Countdown & Status Bar */}
-          <div className="bg-slate-900 text-white p-3 px-4 flex justify-between items-center border-b border-white/10 shrink-0 shadow-lg">
+          <div className="bg-white text-slate-800 p-3 px-4 flex justify-between items-center border-b border-slate-200 shrink-0 shadow-sm">
             <div className="flex items-center gap-2.5 min-w-0">
               {activeTask.type === 'Video' ? (
-                <div className="w-8 h-8 rounded-lg bg-orange-500/20 text-orange-400 flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-lg bg-orange-50 border border-orange-100 text-orange-600 flex items-center justify-center shrink-0">
                   <PlayCircle className="w-5 h-5" />
                 </div>
               ) : (
-                <div className="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
                   <Globe className="w-5 h-5 animate-spin" style={{ animationDuration: '8s' }} />
                 </div>
               )}
               <div className="min-w-0">
                 <h3 className="font-bold text-xs sm:text-sm flex items-center gap-2 truncate">
-                  <span className="truncate">{activeTask.title}</span>
-                  <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-500/30 px-2 py-0.5 rounded-full shrink-0">
+                  <span className="truncate text-slate-800">{activeTask.title}</span>
+                  <span className="text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full shrink-0">
                     +{formatCurrency(activeTask.reward)}
                   </span>
                 </h3>
-                <p className="text-[10px] text-slate-300 flex items-center gap-1.5 truncate">
+                <p className="text-[10px] text-slate-500 flex items-center gap-1.5 truncate">
                   {timer > 0 ? (
                     <>
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></span>
                       <span>কাউন্টডাউন চলছে: <b>{timer} সেকেন্ড</b> অপেক্ষা করুন</span>
                     </>
                   ) : (
-                    <span className="text-emerald-400 font-bold">🎉 সময় সম্পন্ন হয়েছে! রিওয়ার্ড ক্লেম করুন।</span>
+                    <span className="text-emerald-600 font-bold">🎉 সময় সম্পন্ন হয়েছে! রিওয়ার্ড ক্লেম করুন।</span>
                   )}
                 </p>
               </div>
@@ -318,14 +318,14 @@ export default function Earnings() {
             
             <div className="flex items-center gap-2 shrink-0">
               {timer > 0 ? (
-                <div className="bg-gradient-to-r from-red-600/30 to-orange-600/30 border border-red-500/50 text-red-300 px-3 py-1.5 rounded-lg text-xs font-mono font-bold flex items-center gap-1.5 shadow-inner">
+                <div className="bg-red-50 border border-red-200 text-red-600 px-3 py-1.5 rounded-lg text-xs font-mono font-bold flex items-center gap-1.5 shadow-sm">
                   <span className="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
                   00:{timer.toString().padStart(2, '0')}
                 </div>
               ) : (
                 <button 
                   onClick={claimTaskReward}
-                  className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-lg shadow-emerald-500/30 animate-bounce cursor-pointer"
+                  className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-md shadow-emerald-500/20 animate-bounce cursor-pointer"
                 >
                   <Check className="w-4 h-4" /> Claim {formatCurrency(activeTask.reward)}
                 </button>
@@ -333,7 +333,7 @@ export default function Earnings() {
 
               <button 
                 onClick={() => setActiveTask(null)} 
-                className="p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer"
+                className="p-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-500 hover:text-slate-700 transition-colors cursor-pointer border border-slate-200"
                 title="Close"
               >
                 <X className="w-5 h-5" />
@@ -342,7 +342,7 @@ export default function Earnings() {
           </div>
 
           {/* Real-time Linear Countdown Progress Bar */}
-          <div className="w-full bg-slate-800 h-1.5 shrink-0">
+          <div className="w-full bg-slate-100 h-1.5 shrink-0">
             <div 
               className="bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-500 h-full transition-all duration-1000 ease-linear"
               style={{ width: `${progressPercent}%` }}
@@ -350,26 +350,26 @@ export default function Earnings() {
           </div>
           
           {/* Main Direct Content Area */}
-          <div className="flex-1 w-full bg-slate-950 relative overflow-hidden flex flex-col">
+          <div className="flex-1 w-full bg-slate-50 relative overflow-hidden flex flex-col">
             {activeTask.type === 'Video' ? (
               /* Video Task Container */
               <div className="flex-1 w-full flex flex-col items-center justify-center p-3 overflow-y-auto pb-32">
-                <div className="w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col items-center shadow-2xl space-y-4">
+                <div className="w-full max-w-2xl bg-white border border-slate-200 rounded-2xl p-4 flex flex-col items-center shadow-lg space-y-4">
                   {/* Embed Video or Direct Video */}
                   {formattedMedia && formattedMedia.embedUrl ? (
-                    <div className="w-full aspect-video rounded-xl overflow-hidden bg-black shadow-inner border border-slate-800 relative">
+                    <div className="w-full aspect-video rounded-xl overflow-hidden bg-black shadow-inner border border-slate-200 relative">
                       {/* Video Loading Skeleton Overlay */}
                       {isIframeLoading && (
-                        <div className="absolute inset-0 z-20 bg-slate-900 flex flex-col items-center justify-center gap-3 transition-opacity duration-300">
+                        <div className="absolute inset-0 z-20 bg-slate-50 flex flex-col items-center justify-center gap-3 transition-opacity duration-300">
                           <div className="relative">
                             <div className="w-12 h-12 rounded-full border-2 border-orange-500/20 border-t-orange-500 animate-spin flex items-center justify-center"></div>
                             <div className="absolute inset-0 flex items-center justify-center">
-                              <Play className="w-4 h-4 text-orange-400 fill-orange-400" />
+                              <Play className="w-4 h-4 text-orange-500 fill-orange-500" />
                             </div>
                           </div>
                           <div className="text-center">
-                            <p className="text-xs font-bold text-slate-200">Loading Video Stream...</p>
-                            <p className="text-[10px] text-slate-400 font-mono mt-0.5 max-w-xs truncate px-2">{formattedMedia.originalUrl}</p>
+                            <p className="text-xs font-bold text-slate-700">Loading Video Stream...</p>
+                            <p className="text-[10px] text-slate-500 font-mono mt-0.5 max-w-xs truncate px-2">{formattedMedia.originalUrl}</p>
                           </div>
                         </div>
                       )}
@@ -378,50 +378,29 @@ export default function Earnings() {
                         <video 
                           src={formattedMedia.embedUrl} 
                           autoPlay 
-                          controls 
+                          controls={false}
                           playsInline 
                           onLoadedData={() => setIsIframeLoading(false)}
-                          className="w-full h-full object-contain"
+                          className="w-full h-full object-contain pointer-events-none"
                         />
                       ) : (
                         <iframe 
                           src={formattedMedia.embedUrl} 
-                          className="w-full h-full border-none" 
+                          className="w-full h-full border-none pointer-events-none" 
                           title={activeTask.title}
                           onLoad={() => setIsIframeLoading(false)}
                           referrerPolicy="strict-origin-when-cross-origin"
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                          allowFullScreen
+                          allowFullScreen={false}
                         ></iframe>
                       )}
                     </div>
                   ) : (
-                    <div className="w-full aspect-video rounded-xl bg-slate-800 flex flex-col items-center justify-center text-center p-4">
-                      <PlayCircle className="w-12 h-12 text-orange-500 mb-2 animate-pulse" />
-                      <p className="text-white font-bold text-sm">Video Ad Ready</p>
+                    <div className="w-full aspect-video rounded-xl bg-slate-100 flex flex-col items-center justify-center text-center p-4">
+                      <PlayCircle className="w-12 h-12 text-orange-400 mb-2 animate-pulse" />
+                      <p className="text-slate-600 font-bold text-sm">Video Ad Ready</p>
                     </div>
                   )}
-
-                  {/* Direct YouTube Action */}
-                  <div className="w-full bg-slate-800/80 border border-slate-700/60 rounded-xl p-3 flex flex-col sm:flex-row items-center justify-between gap-3">
-                    <div className="flex items-center gap-2.5 text-left w-full sm:w-auto">
-                      <div className="w-8 h-8 rounded-lg bg-red-600/20 text-red-500 flex items-center justify-center shrink-0">
-                        <Play className="w-4 h-4 fill-current" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold text-white truncate">Video Source: {formattedMedia?.hostname || 'YouTube'}</p>
-                        <p className="text-[10px] text-slate-400">Watch video until timer completes to earn reward</p>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => handleOpenLinkInNewTab(formattedMedia?.originalUrl || activeUrl)}
-                      className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-4 py-2 rounded-lg flex items-center justify-center gap-1.5 transition-colors shadow-md shrink-0 cursor-pointer"
-                    >
-                      <span>Watch on YouTube / App</span>
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
                 </div>
               </div>
             ) : (
