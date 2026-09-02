@@ -1108,17 +1108,20 @@ const registerUser = async (userData: { name: string; email: string; password?: 
 
   if (isInitializing) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
-        <div className="w-16 h-16 relative">
-          <div className="absolute inset-0 border-4 border-slate-200 rounded-full"></div>
-          <div className="absolute inset-0 border-4 border-indigo-600 rounded-full border-t-transparent animate-spin"></div>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50/50 p-4">
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center min-w-[200px]">
+          <div className="relative flex items-center justify-center w-12 h-12 mb-4">
+            <div className="absolute inset-0 rounded-full border-2 border-indigo-100"></div>
+            <div className="absolute inset-0 rounded-full border-2 border-indigo-600 border-t-transparent animate-spin"></div>
+            <div className="w-4 h-4 bg-indigo-600 rounded-full animate-pulse"></div>
+          </div>
+          <h2 className="text-sm font-black text-slate-800 tracking-tight">
+            {siteSettings?.siteName || 'miPall'}
+          </h2>
+          <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-wider animate-pulse">
+            Loading App...
+          </p>
         </div>
-        <h2 className="mt-6 text-xl font-semibold text-slate-800">
-          {siteSettings?.siteName || 'Loading...'}
-        </h2>
-        <p className="mt-2 text-slate-500 animate-pulse">
-          Connecting to database...
-        </p>
       </div>
     );
   }
