@@ -2,7 +2,7 @@ import React, { useState, memo, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { useSiteSettings } from '../hooks/useSiteSettings';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { MessageSquare, LayoutDashboard, Users, Briefcase, Settings, LogOut, CreditCard, ChevronDown, ChevronRight, Activity, Wallet, Download, Upload, Share2, Gift } from 'lucide-react';
+import { MessageSquare, LayoutDashboard, Users, Briefcase, Settings, LogOut, CreditCard, ChevronDown, ChevronRight, Activity, Wallet, Download, Upload, Share2, Gift, Gamepad2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 type NavItem = {
@@ -43,6 +43,7 @@ export const AdminLayout = memo(function AdminLayout({ children }: { children: R
     referrals: location.pathname.includes('/referrals'),
     marketing: location.pathname.includes('/marketing'),
     posts: location.pathname.includes('/posts'),
+    games: location.pathname.includes('/games'),
   });
 
   const navGroups: NavGroup[] = useMemo(() => [
@@ -120,6 +121,15 @@ export const AdminLayout = memo(function AdminLayout({ children }: { children: R
       items: [
         { name: 'General Settings', path: '/admin/settings' },
         { name: 'Branding & Logo', path: '/admin/branding' }
+      ]
+    },
+    {
+      id: 'games',
+      name: 'Games & Casino',
+      icon: Gamepad2,
+      items: [
+        { name: 'Game Banners', path: '/admin/games/banners' },
+        { name: 'Manage Games', path: '/admin/games/manage' }
       ]
     }
   ], []);

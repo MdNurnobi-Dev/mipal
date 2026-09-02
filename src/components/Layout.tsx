@@ -1,6 +1,6 @@
 import React, { useState, memo, useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, Briefcase, Wallet, TrendingUp, User, Menu, X, Settings, LogOut, Info, HelpCircle, Gift, Bell, BarChart3, Activity, Smartphone, Download } from 'lucide-react';
+import { Home, Briefcase, Gamepad2, Wallet, TrendingUp, User, Menu, X, Settings, LogOut, Info, HelpCircle, Gift, Bell, BarChart3, Activity, Smartphone, Download } from 'lucide-react';
 import { cn } from '../lib/utils';
 import OnboardingTutorial from './OnboardingTutorial';
 import { useApp } from '../context/AppContext';
@@ -14,6 +14,7 @@ export const BottomNav = memo(function BottomNav() {
   const navItems = useMemo(() => [
     { name: 'Home', path: '/', icon: Home },
     { name: 'Tasks', path: '/earnings', icon: Briefcase },
+    { name: 'Games', path: '/games', icon: Gamepad2, isGame: true },
     { name: 'Plans', path: '/plan', icon: TrendingUp },
     { name: 'Wallet', path: '/wallet', icon: Wallet },
   ], []);
@@ -23,7 +24,31 @@ export const BottomNav = memo(function BottomNav() {
       <div className="flex justify-around items-center h-14 w-full">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = path === item.path;
+          const isActive = path === item.path || (item.isGame && path.startsWith('/games'));
+
+          if (item.isGame) {
+            return (
+              <Link
+                key={item.name}
+                to={item.path}
+                className="relative -top-5 flex flex-col items-center justify-center w-full h-full z-40"
+              >
+                <div className={cn(
+                  "w-12 h-12 rounded-full flex items-center justify-center shadow-lg transform transition-transform hover:scale-105 active:scale-95 border-4 border-white",
+                  isActive ? "bg-gradient-to-r from-amber-400 to-orange-500 shadow-orange-500/40" : "bg-gradient-to-br from-purple-600 to-indigo-700 shadow-purple-500/30"
+                )}>
+                  <Icon className="w-5 h-5 text-white" />
+                </div>
+                <span className={cn(
+                  "text-[10px] font-black mt-1",
+                  isActive ? "text-orange-500" : "text-slate-600"
+                )}>
+                  {item.name}
+                </span>
+              </Link>
+            );
+          }
+
           return (
             <Link
               key={item.name}

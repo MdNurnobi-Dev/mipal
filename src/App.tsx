@@ -24,6 +24,11 @@ const Withdraw = lazy(() => import('./pages/Withdraw'));
 const UserSettings = lazy(() => import('./pages/UserSettings'));
 const HelpCenter = lazy(() => import('./pages/HelpCenter'));
 const Notifications = lazy(() => import('./pages/Notifications'));
+const Games = lazy(() => import('./pages/Games'));
+const CrashGame = lazy(() => import('./pages/games/Crash'));
+const SuperAce = lazy(() => import('./pages/games/SuperAce'));
+const FortuneGems = lazy(() => import('./pages/games/FortuneGems'));
+const Mines = lazy(() => import('./pages/games/Mines'));
 const PlatformActivity = lazy(() => import('./pages/PlatformActivity'));
 
 // Admin Dashboard & Management Pages - Lazy Loaded in isolated chunk
@@ -43,6 +48,8 @@ const AdminBranding = lazy(() => import('./pages/admin/AdminBranding'));
 const AdminGateways = lazy(() => import('./pages/admin/payment/AdminGateways'));
 const AdminDeposits = lazy(() => import('./pages/admin/payment/AdminDeposits'));
 const AdminWithdraws = lazy(() => import('./pages/admin/payment/AdminWithdraws'));
+const AdminGameBanners = lazy(() => import('./pages/admin/AdminGameBanners'));
+const AdminManageGames = lazy(() => import('./pages/admin/AdminManageGames'));
 
 function BrandingHandler() {
   const { siteSettings } = useApp();
@@ -105,6 +112,8 @@ export default function App() {
                     <Route path="/transactions" element={<AdminTransactions />} />
                     <Route path="/settings" element={<AdminSettings />} />
                     <Route path="/branding" element={<AdminBranding />} />
+                    <Route path="/games/banners" element={<AdminGameBanners />} />
+                    <Route path="/games/manage" element={<AdminManageGames />} />
                     <Route path="/settings/notifications" element={<AdminNotificationSettings />} />
                     
                     {/* Payment Sub Menu */}
@@ -201,6 +210,11 @@ export default function App() {
                     <Route path="/earnings-report" element={<EarningsAnalytics />} />
                     <Route path="/plan" element={<Plan />} />
                     <Route path="/wallet" element={<Wallet />} />
+                    <Route path="/games" element={<Games />} />
+                    <Route path="/games/crash" element={<CrashGame />} />
+                    <Route path="/games/slots/super-ace" element={<SuperAce />} />
+                    <Route path="/games/slots/fortune-gems" element={<FortuneGems />} />
+                    <Route path="/games/mines" element={<Mines />} />
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/refer" element={<Refer />} />
                     <Route path="/deposit" element={<Deposit />} />
