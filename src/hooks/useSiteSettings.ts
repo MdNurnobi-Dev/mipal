@@ -115,7 +115,7 @@ export function useSiteSettings(options?: UseSiteSettingsOptions) {
   }, [refreshSettings]);
 
   const currencySymbol = localSettings?.currencySymbol || localSettings?.currency || '৳';
-  const siteName = localSettings?.siteName || 'Earnify';
+  const siteName = localSettings?.siteName || 'miPall';
 
   return {
     siteSettings: localSettings,

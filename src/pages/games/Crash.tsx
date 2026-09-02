@@ -29,19 +29,48 @@ export default function CrashGame() {
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const planeRef = useRef<HTMLDivElement>(null);
+  const multiplierTextRef = useRef<HTMLSpanElement>(null);
+  const bet1WinRef = useRef<HTMLSpanElement>(null);
+  const bet2WinRef = useRef<HTMLSpanElement>(null);
+  const betsRef = useRef({ bet1, bet2 });
   const animationRef = useRef<number>();
   const crashPointRef = useRef<number>(1.00);
   const startTimeRef = useRef<number>(0);
   const prevPosRef = useRef({ x: 10, y: 0 });
+  const lastStateUpdateRef = useRef<number>(0);
+
+  useEffect(() => {
+    betsRef.current = { bet1, bet2 };
+  }, [bet1, bet2]);
 
   const updateGameState = (newState: 'waiting' | 'flying' | 'crashed') => {
     setGameState(newState);
     gameStateRef.current = newState;
   };
 
-  const setMult = (val: number) => {
-    setMultiplier(val);
+  const setMult = (val: number, isFlightPhase = false) => {
     multiplierRef.current = val;
+    if (multiplierTextRef.current) {
+      multiplierTextRef.current.innerText = val.toFixed(2) + 'x';
+    }
+    
+    if (isFlightPhase) {
+      const b1 = betsRef.current.bet1;
+      const b2 = betsRef.current.bet2;
+      if (b1.isPlaced && !b1.cashedOutAt && bet1WinRef.current) {
+        bet1WinRef.current.innerText = (parseFloat(b1.amount) * val).toFixed(2) + " BDT";
+      }
+      if (b2.isPlaced && !b2.cashedOutAt && bet2WinRef.current) {
+        bet2WinRef.current.innerText = (parseFloat(b2.amount) * val).toFixed(2) + " BDT";
+      }
+    }
+    
+    const now = performance.now();
+    // Only force full react render every 250ms during flight, or immediately if not flying
+    if (!isFlightPhase || now - lastStateUpdateRef.current > 250) {
+      setMultiplier(val);
+      lastStateUpdateRef.current = now;
+    }
   };
 
   useEffect(() => {
@@ -69,13 +98,13 @@ export default function CrashGame() {
 
   const startWaitingPhase = async () => {
     updateGameState('waiting');
-    setMult(1.00);
+    setMult(1.00, false);
     setBet1(prev => ({ ...prev, cashedOutAt: null, winAmount: null }));
     setBet2(prev => ({ ...prev, cashedOutAt: null, winAmount: null }));
     
     if (planeRef.current && canvasRef.current) {
        const startY = canvasRef.current.height - 10;
-       planeRef.current.style.transform = `translate(10px, ${startY}px) rotate(0deg)`;
+       planeRef.current.style.transform = `translate3d(10px, ${startY}px, 0) rotate(0deg)`;
        planeRef.current.style.opacity = '1';
     }
     
@@ -126,10 +155,11 @@ export default function CrashGame() {
     const timeNow = performance.now();
     const elapsed = timeNow - startTimeRef.current;
     
-    const currentMult = Math.max(1.00, Math.pow(Math.E, elapsed / 6000));
+    // Slightly speed up multiplier increment (was 15000, now 11000)
+    const currentMult = Math.max(1.00, Math.pow(Math.E, elapsed / 11000));
     
     if (currentMult >= crashPointRef.current) {
-      setMult(crashPointRef.current);
+      setMult(crashPointRef.current, false);
       updateGameState('crashed');
       setHistory(prev => [parseFloat(crashPointRef.current.toFixed(2)), ...prev].slice(0, 20));
       
@@ -140,7 +170,7 @@ export default function CrashGame() {
       
       if (planeRef.current) {
          planeRef.current.style.transition = 'transform 0.5s ease-in, opacity 0.3s ease-in';
-         planeRef.current.style.transform = `translate(${prevPosRef.current.x + 100}px, ${prevPosRef.current.y - 100}px) rotate(45deg)`;
+         planeRef.current.style.transform = `translate3d(${prevPosRef.current.x + 100}px, ${prevPosRef.current.y - 100}px, 0) rotate(45deg)`;
          planeRef.current.style.opacity = '0';
       }
       
@@ -151,7 +181,7 @@ export default function CrashGame() {
       return;
     }
     
-    setMult(currentMult);
+    setMult(currentMult, true);
     drawCanvas(currentMult, false, false);
     animationRef.current = requestAnimationFrame(animateFlight);
   };
@@ -171,7 +201,8 @@ export default function CrashGame() {
     const startX = 10;
     const startY = height - 10;
     
-    const progressX = Math.min(1, (performance.now() - startTimeRef.current) / 10000); 
+    // Slightly faster visual movement across the X axis (was 25000, now 18000)
+    const progressX = Math.min(1, (performance.now() - startTimeRef.current) / 18000); 
     const targetX = startX + (width - startX - 20) * progressX; 
     
     const targetY = startY - (startY - 20) * Math.min(1, (currentMult - 1) / 5); 
@@ -199,12 +230,22 @@ export default function CrashGame() {
     ctx.stroke();
 
     if (!isCrashed && planeRef.current) {
-        const dx = currentX - prevPosRef.current.x;
-        const dy = currentY - prevPosRef.current.y;
+        // Calculate a stable angle by looking slightly ahead in time (50ms) to avoid frame-to-frame noise jitter
+        const elapsed = performance.now() - startTimeRef.current;
+        const lookAheadElapsed = elapsed + 50;
+        const lookAheadMult = Math.max(1.00, Math.pow(Math.E, lookAheadElapsed / 11000));
+        const lookAheadProgressX = Math.min(1, lookAheadElapsed / 18000);
+        
+        const nextX = startX + (width - startX - 20) * lookAheadProgressX;
+        const nextY = Math.max(20, startY - (startY - 20) * Math.min(1, (lookAheadMult - 1) / 5));
+        
+        const dx = nextX - currentX;
+        const dy = nextY - currentY;
         let angle = Math.atan2(dy, dx) * (180 / Math.PI);
         if (isNaN(angle)) angle = 0;
         
-        planeRef.current.style.transform = `translate(${currentX - 25}px, ${currentY - 12}px) rotate(${angle}deg)`;
+        // Use translate3d to force hardware acceleration and eliminate rendering stutter/vibration
+        planeRef.current.style.transform = `translate3d(${currentX - 38}px, ${currentY - 18}px, 0) rotate(${angle}deg)`;
         prevPosRef.current = { x: currentX, y: currentY };
     }
   };
@@ -290,7 +331,7 @@ export default function CrashGame() {
         {/* Action Button */}
         <button onClick={() => handleBetAction(betNum)} className={`w-full h-10 ${btnColor} rounded-xl flex flex-col items-center justify-center text-white shadow-[0_3px_0_rgba(0,0,0,0.3)] active:translate-y-[2px] active:shadow-none transition-all`}>
            <span className="text-[13px] font-black uppercase leading-none drop-shadow-sm mb-0.5">{btnText}</span>
-           {btnText !== "CANCEL" && <span className="text-[10px] font-bold drop-shadow-sm leading-none">{btnSubText}</span>}
+           {btnText !== "CANCEL" && <span ref={betNum === 1 ? bet1WinRef : bet2WinRef} className="text-[10px] font-bold drop-shadow-sm leading-none">{btnSubText}</span>}
         </button>
         
         {isCashedOut && (
@@ -349,7 +390,7 @@ export default function CrashGame() {
         <canvas ref={canvasRef} className="absolute inset-0 z-10 w-full h-full block" />
         
         <div ref={planeRef} className="absolute top-0 left-0 z-20 pointer-events-none will-change-transform">
-           <svg width="34" height="16" viewBox="0 0 50 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-[0_4px_6px_rgba(229,11,20,0.6)]">
+           <svg width="75" height="36" viewBox="0 0 50 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-[0_6px_8px_rgba(229,11,20,0.8)]">
              <path d="M47.5 10.5C49 10.5 50 11.5 50 13C50 14.5 49 15.5 47.5 15.5L30 15.5L15 23.5L10 23.5L18 15.5L5 15.5L0 12L5 10.5L18 10.5L10 2.5L15 2.5L30 10.5L47.5 10.5Z" fill="#e50b14"/>
            </svg>
         </div>
@@ -367,7 +408,7 @@ export default function CrashGame() {
              <span className="text-[#e50b14] font-black text-lg uppercase tracking-widest drop-shadow-lg mb-1">Flew Away!</span>
            )}
            {gameState !== 'waiting' && (
-             <span className={`text-[65px] font-black tabular-nums tracking-tighter leading-none ${gameState === 'crashed' ? 'text-[#e50b14] drop-shadow-[0_0_10px_rgba(229,11,20,0.3)]' : 'text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]'}`}>
+             <span ref={multiplierTextRef} className={`text-[65px] font-black tabular-nums tracking-tighter leading-none ${gameState === 'crashed' ? 'text-[#e50b14] drop-shadow-[0_0_10px_rgba(229,11,20,0.3)]' : 'text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]'}`}>
                {multiplier.toFixed(2)}x
              </span>
            )}

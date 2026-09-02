@@ -13,25 +13,25 @@ export type GameResult = {
 
 class GameServerSimulator {
   public async initCrashRound(): Promise<{ crashPoint: number }> {
-    // Make users lose significantly more often by heavily weighting instant crashes and low crashes
     const rand = Math.random();
     
-    // 35% chance to crash immediately at 1.00 (Instant Loss)
-    if (rand < 0.35) return { crashPoint: 1.00 };
+    // 10% chance of instant crash at 1.00 (Instant House sweep)
+    if (rand < 0.10) return { crashPoint: 1.00 };
     
-    // 50% chance to crash between 1.01 and 1.15 (Very Quick Loss)
-    if (rand < 0.85) {
-      return { crashPoint: parseFloat((1.01 + Math.random() * 0.14).toFixed(2)) };
+    // 25% chance of early crash between 1.01 and 1.30 (Prevents constant winning)
+    if (rand < 0.35) {
+      return { crashPoint: parseFloat((1.01 + Math.random() * 0.29).toFixed(2)) };
     }
-
-    // Remaining 15% chance - heavily dampened crash curve
-    const r = Math.random();
-    const e = 1 / (1 - r); // Standard crash curve
-    // Dampen the multiplier extremely heavily to prevent big wins (multiply by 0.4 instead of 0.75)
-    const crashPoint = Math.max(1.00, e * 0.4); 
     
-    // Cap max win at 30x to minimize financial risk
-    const finalCrash = Math.min(30.00, crashPoint);
+    // 65% chance for Standard Crash Curve
+    const r2 = Math.random();
+    const e = 1 / (1 - r2);
+    
+    // Apply slight house edge to the curve
+    const crashPoint = Math.max(1.00, e * 0.95); 
+    
+    // Cap max win at 1000x to prevent infinite loops, but allow large wins
+    const finalCrash = Math.min(1000.00, crashPoint);
     
     return { crashPoint: parseFloat(finalCrash.toFixed(2)) };
   }

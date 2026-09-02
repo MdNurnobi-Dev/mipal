@@ -8,7 +8,7 @@ type EventHandler<T = any> = (data: T) => void;
 class AppEventEmitter {
   private listeners: Map<string, Set<EventHandler>> = new Map();
   private broadcastChannel: BroadcastChannel | null = null;
-  private channelName = 'earnify_global_sync_channel';
+  private channelName = 'mipall_global_sync_channel';
 
   constructor() {
     if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
@@ -26,7 +26,7 @@ class AppEventEmitter {
 
     // Attach local DOM event listener for custom events
     if (typeof window !== 'undefined') {
-      window.addEventListener('earnify:event', ((e: CustomEvent) => {
+      window.addEventListener('mipall:event', ((e: CustomEvent) => {
         if (e.detail?.type) {
           this.emitLocal(e.detail.type, e.detail.payload);
         }
@@ -88,7 +88,7 @@ class AppEventEmitter {
     // 2. DOM CustomEvent
     if (typeof window !== 'undefined') {
       try {
-        window.dispatchEvent(new CustomEvent('earnify:event', { detail: { type: event, payload } }));
+        window.dispatchEvent(new CustomEvent('mipall:event', { detail: { type: event, payload } }));
       } catch (e) {
         // ignore
       }
@@ -106,7 +106,7 @@ class AppEventEmitter {
     // 4. Storage fallback for sandboxed iframes
     if (typeof window !== 'undefined' && window.localStorage) {
       try {
-        localStorage.setItem('earnify_sync_event', JSON.stringify({ type: event, payload, timestamp: Date.now() }));
+        localStorage.setItem('mipall_sync_event', JSON.stringify({ type: event, payload, timestamp: Date.now() }));
       } catch (e) {
         // ignore
       }

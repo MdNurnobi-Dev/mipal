@@ -28,7 +28,7 @@ export default function AdminSettings() {
     logoUrl: siteSettings.logoUrl || '',
     faviconUrl: siteSettings.faviconUrl || '',
     primaryColor: siteSettings.primaryColor || '#4f46e5',
-    supportEmail: siteSettings.supportEmail || 'support@earnify.com',
+    supportEmail: siteSettings.supportEmail || 'support@mipall.com',
     supportPhone: siteSettings.supportPhone || '',
     whatsappNumber: siteSettings.whatsappNumber || siteSettings.whatsappUrl || '',
     telegramUrl: siteSettings.telegramUrl || '',
@@ -54,7 +54,7 @@ export default function AdminSettings() {
         logoUrl: siteSettings.logoUrl || '',
         faviconUrl: siteSettings.faviconUrl || '',
         primaryColor: siteSettings.primaryColor || '#4f46e5',
-        supportEmail: siteSettings.supportEmail || 'support@earnify.com',
+        supportEmail: siteSettings.supportEmail || 'support@mipall.com',
         supportPhone: siteSettings.supportPhone || '',
         whatsappNumber: siteSettings.whatsappNumber || siteSettings.whatsappUrl || '',
         telegramUrl: siteSettings.telegramUrl || '',
@@ -474,7 +474,7 @@ export default function AdminSettings() {
                 name="siteName"
                 value={formData.siteName}
                 onChange={handleChange}
-                placeholder="e.g. Earnify"
+                placeholder="e.g. miPall"
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
                 required
               />
@@ -558,7 +558,7 @@ export default function AdminSettings() {
                   name="supportEmail"
                   value={formData.supportEmail}
                   onChange={handleChange}
-                  placeholder="support@earnify.com"
+                  placeholder="support@mipall.com"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3.5 py-2 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
                 />
               </div>

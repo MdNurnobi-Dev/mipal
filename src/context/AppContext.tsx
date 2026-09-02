@@ -117,11 +117,11 @@ interface AppState {
 }
 
 const defaultSiteSettings: SiteSettings = {
-  siteName: 'Earnify',
+  siteName: 'miPall',
   siteDescription: 'The best platform to earn rewards.',
   logoUrl: '',
   faviconUrl: '',
-  supportEmail: 'support@earnify.com',
+  supportEmail: 'support@mipall.com',
   supportPhone: '',
   facebookUrl: '',
   telegramUrl: '',
@@ -137,8 +137,8 @@ const defaultSiteSettings: SiteSettings = {
 const AppContext = createContext<AppState | undefined>(undefined);
 
 // Broadcast channel & Storage key for cross-tab, cross-window, and instant UI state synchronization
-const SETTINGS_BROADCAST_CHANNEL = 'earnify_settings_broadcast';
-const SETTINGS_SYNC_STORAGE_KEY = 'earnify_settings_sync_event';
+const SETTINGS_BROADCAST_CHANNEL = 'mipall_settings_broadcast';
+const SETTINGS_SYNC_STORAGE_KEY = 'mipall_settings_sync_event';
 
 let syncBroadcastChannel: BroadcastChannel | null = null;
 try {
