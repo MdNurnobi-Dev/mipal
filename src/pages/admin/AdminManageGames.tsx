@@ -32,7 +32,7 @@ export default function AdminManageGames() {
         fortune_gems: true,
         mines: true,
         fly_x: true,
-        spaceman: false,
+        spaceman: true,
         wild_bounty: false
       });
     }
@@ -47,29 +47,43 @@ export default function AdminManageGames() {
         fortune_gems: 'medium',
         mines: 'medium',
         fly_x: 'low',
-        spaceman: 'medium',
+        spaceman: 'low',
         wild_bounty: 'medium'
       });
     }
   }, [siteSettings]);
 
-  const toggleGame = (id: string) => {
-    setGameStates(prev => ({
-      ...prev,
-      [id]: !prev[id]
-    }));
+  const toggleGame = async (id: string) => {
+    const nextStates = {
+      ...gameStates,
+      [id]: !gameStates[id]
+    };
+    setGameStates(nextStates);
+    try {
+      await updateSiteSettings({ gameStates: nextStates, gameWinControls });
+    } catch (e) {
+      console.warn('Optimistic sync failed:', e);
+    }
   };
 
-  const handleWinControlChange = (id: string, level: string) => {
-    setGameWinControls(prev => ({
-      ...prev,
+  const handleWinControlChange = async (id: string, level: string) => {
+    const nextControls = {
+      ...gameWinControls,
       [id]: level
-    }));
+    };
+    setGameWinControls(nextControls);
+    try {
+      await updateSiteSettings({ gameStates, gameWinControls: nextControls });
+      setSuccess(`Updated ${id.replace('_', ' ').toUpperCase()} win control to ${level.toUpperCase()}`);
+      setTimeout(() => setSuccess(''), 2500);
+    } catch (e) {
+      console.warn('Optimistic sync failed:', e);
+    }
   };
 
   const handleSave = async () => {
     await updateSiteSettings({ gameStates, gameWinControls });
-    setSuccess('Game settings updated successfully!');
+    setSuccess('All game settings saved and live synced successfully!');
     setTimeout(() => setSuccess(''), 3000);
   };
 

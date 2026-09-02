@@ -3,12 +3,13 @@ import { Link } from 'react-router-dom';
 import { 
   ArrowLeft, Volume2, VolumeX, HelpCircle, X, ShieldCheck, 
   Zap, Award, Flame, Users, History, TrendingUp, CheckCircle, RefreshCw,
-  Trophy, Crown, Sparkles
+  Trophy, Crown, Sparkles, AlertTriangle
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useCurrency } from '../../hooks/useCurrency';
 import { audioSystem } from '../../utils/audioSystem';
 import { FlyXHeroVector } from '../../components/FlyXLobbyThumbnail';
+import { appEvents, SYNC_EVENTS } from '../../utils/eventEmitter';
 
 interface BetState {
   amount: number;
@@ -39,6 +40,16 @@ interface RecentWinner {
   timeAgo: string;
 }
 
+const INITIAL_BET_STATE: BetState = {
+  amount: 10,
+  isPlaced: false,
+  isQueuedForNext: false,
+  cashedOutAt: null,
+  winAmount: 0,
+  autoCashoutEnabled: false,
+  autoCashoutMult: 2.0,
+};
+
 export default function FlyX() {
   const { currentUser, siteSettings, updateUserProfile } = useApp();
   const { formatCurrency } = useCurrency();
@@ -49,6 +60,80 @@ export default function FlyX() {
   const [selectedHistoryItem, setSelectedHistoryItem] = useState<{ mult: number; hash: string } | null>(null);
   const [activeTab, setActiveTab] = useState<'all' | 'my' | 'top'>('all');
   const [activeDeckTab, setActiveDeckTab] = useState<'both' | 'deck1' | 'deck2'>('both');
+
+  // Real-time Admin Win Control & Game Status Sync
+  const [liveWinControl, setLiveWinControl] = useState<string>(
+    siteSettings?.gameWinControls?.['fly_x'] || 'low'
+  );
+  const winControlRef = useRef<string>(
+    siteSettings?.gameWinControls?.['fly_x'] || 'low'
+  );
+  const [isGameActive, setIsGameActive] = useState<boolean>(
+    siteSettings?.gameStates && siteSettings.gameStates['fly_x'] !== undefined
+      ? !siteSettings.gameStates['fly_x']
+      : true
+  );
+  const isGameActiveRef = useRef<boolean>(
+    siteSettings?.gameStates && siteSettings.gameStates['fly_x'] !== undefined
+      ? !siteSettings.gameStates['fly_x']
+      : true
+  );
+
+  // Sync with siteSettings whenever updated via AppContext / PostgreSQL
+  useEffect(() => {
+    if (siteSettings?.gameWinControls?.['fly_x']) {
+      const newWin = siteSettings.gameWinControls['fly_x'];
+      setLiveWinControl(newWin);
+      winControlRef.current = newWin;
+    }
+    if (siteSettings?.gameStates && siteSettings.gameStates['fly_x'] !== undefined) {
+      const active = !siteSettings.gameStates['fly_x'];
+      setIsGameActive(active);
+      isGameActiveRef.current = active;
+    }
+  }, [siteSettings]);
+
+  // Multi-tab and live EventEmitter instant sync listeners
+  useEffect(() => {
+    const handleSync = (data: any) => {
+      if (data?.key === 'siteSettings' && data?.value) {
+        const val = data.value;
+        if (val.gameWinControls?.['fly_x']) {
+          const newWin = val.gameWinControls['fly_x'];
+          setLiveWinControl(newWin);
+          winControlRef.current = newWin;
+        }
+        if (val.gameStates && val.gameStates['fly_x'] !== undefined) {
+          const active = !val.gameStates['fly_x'];
+          setIsGameActive(active);
+          isGameActiveRef.current = active;
+        }
+      }
+    };
+
+    const unsub = appEvents.on(SYNC_EVENTS.SETTINGS_UPDATED, handleSync);
+
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'mipall_settings_sync' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          handleSync(parsed);
+        } catch (err) {}
+      }
+    };
+    window.addEventListener('storage', onStorage);
+
+    const onCustom = (e: any) => {
+      if (e.detail) handleSync(e.detail);
+    };
+    window.addEventListener('app:settings-updated', onCustom);
+
+    return () => {
+      unsub();
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('app:settings-updated', onCustom);
+    };
+  }, []);
 
   // Multiplier Ribbon History
   const [multiplierHistory, setMultiplierHistory] = useState<Array<{ mult: number; hash: string }>>([
@@ -72,25 +157,8 @@ export default function FlyX() {
   const crashMultiplierRef = useRef<number>(1.5);
   
   // Dual Bet Panels
-  const [bet1, setBet1] = useState<BetState>({
-    amount: 10,
-    isPlaced: false,
-    isQueuedForNext: false,
-    cashedOutAt: null,
-    winAmount: 0,
-    autoCashoutEnabled: false,
-    autoCashoutMult: 2.0,
-  });
-
-  const [bet2, setBet2] = useState<BetState>({
-    amount: 10,
-    isPlaced: false,
-    isQueuedForNext: false,
-    cashedOutAt: null,
-    winAmount: 0,
-    autoCashoutEnabled: false,
-    autoCashoutMult: 2.0,
-  });
+  const [bet1, setBet1] = useState<BetState>({ ...INITIAL_BET_STATE });
+  const [bet2, setBet2] = useState<BetState>({ ...INITIAL_BET_STATE });
 
   const bet1Ref = useRef(bet1);
   const bet2Ref = useRef(bet2);
@@ -113,6 +181,8 @@ export default function FlyX() {
     { id: 'w8', user: 'SpeedDemon', avatarSeed: 'speed', multiplier: 1.95, bet: 300, win: 585, timeAgo: '35s ago' },
   ]);
 
+  const winnersIntervalRef = useRef<any>(null);
+
   // Periodic simulated winners generator to keep marquee alive & engaging
   useEffect(() => {
     const fakeNames = [
@@ -121,7 +191,15 @@ export default function FlyX() {
       'Kamrul_X', 'Sabbir_Win', 'Imran_Hero', 'Tareq_Flyer', 'Jahangir99'
     ];
 
-    const interval = setInterval(() => {
+    winnersIntervalRef.current = setInterval(() => {
+      if (!isMountedRef.current) {
+        if (winnersIntervalRef.current) {
+          clearInterval(winnersIntervalRef.current);
+          winnersIntervalRef.current = null;
+        }
+        return;
+      }
+
       if (Math.random() < 0.65) {
         const randomName = fakeNames[Math.floor(Math.random() * fakeNames.length)];
         const mult = +(1.30 + Math.random() * (Math.random() > 0.85 ? 8.5 : 2.2)).toFixed(2);
@@ -138,15 +216,23 @@ export default function FlyX() {
           timeAgo: 'Just now',
         };
 
-        setRecentWinners(prev => [newWin, ...prev.slice(0, 15)]);
+        if (isMountedRef.current) {
+          setRecentWinners(prev => [newWin, ...prev.slice(0, 15)]);
+        }
       }
     }, 4000);
 
-    return () => clearInterval(interval);
+    return () => {
+      if (winnersIntervalRef.current) {
+        clearInterval(winnersIntervalRef.current);
+        winnersIntervalRef.current = null;
+      }
+    };
   }, []);
 
   // Canvas Ref
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const canvasAnimRef = useRef<number | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const flightAnimRef = useRef<number | null>(null);
   const waitingIntervalRef = useRef<any>(null);
@@ -162,7 +248,7 @@ export default function FlyX() {
 
   // Determine crash multiplier based on admin win control (Aggressive House Edge / Owner Win Guarantee)
   const calculateCrashMultiplier = useCallback(() => {
-    const winControl = siteSettings?.gameWinControls?.['fly_x'] || 'low';
+    const winControl = winControlRef.current || 'low';
     const rand = Math.random();
 
     const b1 = bet1Ref.current;
@@ -228,7 +314,7 @@ export default function FlyX() {
         return +(3.45 + Math.random() * 10.50).toFixed(2);
       }
     }
-  }, [siteSettings]);
+  }, []);
 
   const currentUserRef = useRef(currentUser);
   useEffect(() => {
@@ -502,53 +588,93 @@ export default function FlyX() {
     }, 3200);
   };
 
+  // Explicit Instance Destroyer & State Reset Function
+  const destroyGameInstance = useCallback(() => {
+    isMountedRef.current = false;
+
+    // 1. Terminate all active animation loops
+    if (flightAnimRef.current) {
+      cancelAnimationFrame(flightAnimRef.current);
+      flightAnimRef.current = null;
+    }
+    if (canvasAnimRef.current) {
+      cancelAnimationFrame(canvasAnimRef.current);
+      canvasAnimRef.current = null;
+    }
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+
+    // 2. Clear all active intervals and timeouts
+    if (waitingIntervalRef.current) {
+      clearInterval(waitingIntervalRef.current);
+      waitingIntervalRef.current = null;
+    }
+    if (winnersIntervalRef.current) {
+      clearInterval(winnersIntervalRef.current);
+      winnersIntervalRef.current = null;
+    }
+    if (crashTimeoutRef.current) {
+      clearTimeout(crashTimeoutRef.current);
+      crashTimeoutRef.current = null;
+    }
+
+    // 3. Immediately silence and release all audio resources
+    audioSystem.stopAllSounds();
+
+    // 4. Refund any active bets placed during the waiting phase
+    if (gameStateRef.current === 'waiting') {
+      const user = currentUserRef.current;
+      const b1 = bet1Ref.current;
+      const b2 = bet2Ref.current;
+      let refund = 0;
+      if (b1.isPlaced) refund += b1.amount;
+      if (b1.isQueuedForNext) refund += b1.amount;
+      if (b2.isPlaced) refund += b2.amount;
+      if (b2.isQueuedForNext) refund += b2.amount;
+      if (refund > 0 && user) {
+        updateUserProfile(user.id, {
+          balance: +(user.balance + refund).toFixed(2),
+        });
+      }
+    }
+
+    // 5. Reset all state refs to initial baseline values
+    gameStateRef.current = 'waiting';
+    multiplierRef.current = 1.0;
+    bet1Ref.current = { ...INITIAL_BET_STATE };
+    bet2Ref.current = { ...INITIAL_BET_STATE };
+
+    // 6. Reset all React component states to prevent residual data persistence
+    setGameState('waiting');
+    setMultiplier(1.0);
+    setCountdown(5.0);
+    setBet1({ ...INITIAL_BET_STATE });
+    setBet2({ ...INITIAL_BET_STATE });
+    setSimulatedBets([]);
+    setShowRules(false);
+    setShowHistoryModal(false);
+    setSelectedHistoryItem(null);
+
+    // 7. Clear HTML5 canvas buffer and free memory
+    if (canvasRef.current) {
+      const ctx = canvasRef.current.getContext('2d');
+      if (ctx) {
+        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      }
+    }
+  }, [updateUserProfile]);
+
   // Initial Game Start and Lifecycle cleanup
   useEffect(() => {
     isMountedRef.current = true;
     startWaitingPhase();
 
     return () => {
-      isMountedRef.current = false;
-      
-      // Stop all active intervals, timeouts & animation frames
-      if (waitingIntervalRef.current) {
-        clearInterval(waitingIntervalRef.current);
-        waitingIntervalRef.current = null;
-      }
-      if (crashTimeoutRef.current) {
-        clearTimeout(crashTimeoutRef.current);
-        crashTimeoutRef.current = null;
-      }
-      if (flightAnimRef.current) {
-        cancelAnimationFrame(flightAnimRef.current);
-        flightAnimRef.current = null;
-      }
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-        animationFrameRef.current = null;
-      }
-
-      // Immediately silence and stop all game sounds / BGM
-      audioSystem.stopAllSounds();
-
-      // Refund bets placed during waiting phase if user leaves before round starts
-      if (gameStateRef.current === 'waiting') {
-        const user = currentUserRef.current;
-        const b1 = bet1Ref.current;
-        const b2 = bet2Ref.current;
-        let refund = 0;
-        if (b1.isPlaced) refund += b1.amount;
-        if (b1.isQueuedForNext) refund += b1.amount;
-        if (b2.isPlaced) refund += b2.amount;
-        if (b2.isQueuedForNext) refund += b2.amount;
-        if (refund > 0 && user) {
-          updateUserProfile(user.id, {
-            balance: +(user.balance + refund).toFixed(2),
-          });
-        }
-      }
+      destroyGameInstance();
     };
-  }, []);
+  }, [destroyGameInstance]);
 
   // Canvas Render Loop for Cyber Cosmic Flight
   useEffect(() => {
@@ -557,7 +683,6 @@ export default function FlyX() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    let animId: number;
     let starOffset = 0;
 
     // Generate static stars
@@ -570,6 +695,8 @@ export default function FlyX() {
     }));
 
     const render = () => {
+      if (!isMountedRef.current) return;
+
       const parentW = canvas.parentElement?.clientWidth;
       const parentH = canvas.parentElement?.clientHeight;
       const width = (parentW && Number.isFinite(parentW) && parentW > 0) ? parentW : 360;
@@ -680,11 +807,18 @@ export default function FlyX() {
         }
       }
 
-      animId = requestAnimationFrame(render);
+      if (isMountedRef.current) {
+        canvasAnimRef.current = requestAnimationFrame(render);
+      }
     };
 
-    animId = requestAnimationFrame(render);
-    return () => cancelAnimationFrame(animId);
+    canvasAnimRef.current = requestAnimationFrame(render);
+    return () => {
+      if (canvasAnimRef.current) {
+        cancelAnimationFrame(canvasAnimRef.current);
+        canvasAnimRef.current = null;
+      }
+    };
   }, []);
 
   // Place or Cancel Bet Logic
@@ -770,12 +904,22 @@ export default function FlyX() {
           </div>
         </div>
 
-        {/* Center: Live Real Balance Capsule */}
-        <div className="flex items-center gap-1 bg-[#101c2d] border border-[#1e3452] px-2.5 py-1 rounded-full shadow-inner">
-          <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">BALANCE:</span>
-          <span className="font-black text-xs text-[#38bdf8] tracking-tight">
-            {formatCurrency(currentUser?.balance || 0)}
-          </span>
+        {/* Center: Live Real Balance Capsule & Realtime Sync Indicator */}
+        <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1 bg-[#101c2d] border border-[#1e3452] px-2.5 py-1 rounded-full shadow-inner">
+            <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">BALANCE:</span>
+            <span className="font-black text-xs text-[#38bdf8] tracking-tight">
+              {formatCurrency(currentUser?.balance || 0)}
+            </span>
+          </div>
+
+          <div 
+            title={`Real-time Engine Sync Active • Mode: ${liveWinControl.toUpperCase()}`}
+            className="hidden sm:flex items-center gap-1 bg-[#091523] border border-cyan-500/30 px-2 py-0.5 rounded-full"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-[8px] font-extrabold text-cyan-300 uppercase tracking-widest">LIVE SYNC</span>
+          </div>
         </div>
 
         {/* Right: Sound & Rules Controls */}

@@ -6,6 +6,7 @@ import { useCurrency } from '../hooks/useCurrency';
 import { FortuneGemsLobbyThumbnail } from '../components/FortuneGemsLobbyThumbnail';
 import { MinesLobbyThumbnail } from '../components/MinesLobbyThumbnail';
 import { FlyXLobbyThumbnail } from '../components/FlyXLobbyThumbnail';
+import { SpacemanLobbyThumbnail } from '../components/SpacemanLobbyThumbnail';
 
 export default function Games() {
   const { currentUser, siteSettings } = useApp();
@@ -97,9 +98,10 @@ export default function Games() {
       provider: 'PRAGMATIC PLAY',
       image: 'bg-gradient-to-br from-indigo-600 to-purple-800',
       icon: Rocket,
-      path: '#',
+      path: '/games/spaceman',
+      tag: 'HOT',
       category: 'Crash',
-      active: siteSettings?.gameStates ? !!siteSettings.gameStates['spaceman'] : false
+      active: siteSettings?.gameStates && siteSettings.gameStates['spaceman'] !== undefined ? !!siteSettings.gameStates['spaceman'] : true
     },
     {
       id: 'wild_bounty',
@@ -260,6 +262,8 @@ export default function Games() {
                   <MinesLobbyThumbnail className="w-full h-full" />
                 ) : game.id === 'fly_x' ? (
                   <FlyXLobbyThumbnail className="w-full h-full" />
+                ) : game.id === 'spaceman' ? (
+                  <SpacemanLobbyThumbnail className="w-full h-full" isActive={game.active} />
                 ) : (
                   <>
                     {game.imageUrl && (
