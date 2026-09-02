@@ -16,7 +16,7 @@ const COLS = 5;
 const ROWS = 4;
 
 export default function SuperAce() {
-  const { currentUser, updateUserProfile } = useApp();
+  const { currentUser, updateUserProfile, siteSettings } = useApp();
   
   const [bet, setBet] = useState(0.5);
   const [isSpinning, setIsSpinning] = useState(false);
@@ -90,8 +90,9 @@ export default function SuperAce() {
     setSpinningCols([true, true, true, true, true]);
 
     const symbols = CARDS.map(c => c.id);
-    const result = await gameApi.spinSlot(bet, COLS, ROWS, symbols);
-
+    const winControl = (siteSettings?.gameWinControls?.super_ace as any) || 'medium';
+    const result = await gameApi.spinSlot(bet, COLS, ROWS, symbols, winControl);
+    
     const spinDuration = isTurbo ? 100 : 300;
     const staggerTime = isTurbo ? 30 : 100;
 

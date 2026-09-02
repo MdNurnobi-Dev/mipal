@@ -18,7 +18,7 @@ const COLS = 3;
 const ROWS = 3;
 
 export default function FortuneGems() {
-  const { currentUser, updateUserProfile } = useApp();
+  const { currentUser, updateUserProfile, siteSettings } = useApp();
   const { formatCurrency } = useCurrency();
   
   const [bet, setBet] = useState(20);
@@ -71,7 +71,15 @@ export default function FortuneGems() {
   };
 
   const checkWin = () => {
-    const isWin = Math.random() > 0.5;
+    const winControl = (siteSettings?.gameWinControls?.fortune_gems as string) || 'medium';
+    let winChance = 0.5; // Default medium
+    
+    if (winControl === 'zero') winChance = 0.0;
+    else if (winControl === 'low') winChance = 0.15;
+    else if (winControl === 'high') winChance = 0.8;
+
+    const isWin = Math.random() < winChance;
+    
     if (isWin) {
       const baseMult = Math.floor(Math.random() * 3) + 1;
       const finalMult = parseInt(multReel.replace('x', ''));

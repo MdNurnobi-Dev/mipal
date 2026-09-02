@@ -13,8 +13,13 @@ type BetState = {
 };
 
 export default function CrashGame() {
-  const { currentUser, updateUserProfile } = useApp();
+  const { currentUser, updateUserProfile, siteSettings } = useApp();
   
+  const currentUserRef = useRef(currentUser);
+  useEffect(() => {
+    currentUserRef.current = currentUser;
+  }, [currentUser]);
+
   const [gameState, setGameState] = useState<'waiting' | 'flying' | 'crashed'>('waiting');
   const gameStateRef = useRef<'waiting' | 'flying' | 'crashed'>('waiting');
   
@@ -93,14 +98,26 @@ export default function CrashGame() {
     startWaitingPhase();
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
+      // If user placed a bet during waiting phase and navigates away, refund it
+      if (gameStateRef.current === 'waiting') {
+        const user = currentUserRef.current;
+        const b1 = betsRef.current.bet1;
+        const b2 = betsRef.current.bet2;
+        let refund = 0;
+        if (b1.isPlaced) refund += parseFloat(b1.amount || '0');
+        if (b2.isPlaced) refund += parseFloat(b2.amount || '0');
+        if (refund > 0 && user) {
+          updateUserProfile(user.id, { balance: user.balance + refund });
+        }
+      }
     };
   }, []);
 
   const startWaitingPhase = async () => {
     updateGameState('waiting');
     setMult(1.00, false);
-    setBet1(prev => ({ ...prev, cashedOutAt: null, winAmount: null }));
-    setBet2(prev => ({ ...prev, cashedOutAt: null, winAmount: null }));
+    setBet1(prev => ({ ...prev, isPlaced: false, cashedOutAt: null, winAmount: null }));
+    setBet2(prev => ({ ...prev, isPlaced: false, cashedOutAt: null, winAmount: null }));
     
     if (planeRef.current && canvasRef.current) {
        const startY = canvasRef.current.height - 10;
@@ -117,7 +134,8 @@ export default function CrashGame() {
     }
     drawCanvas(1.00, false, true);
 
-    const { crashPoint } = await gameApi.initCrashRound();
+    const winControl = (siteSettings?.gameWinControls?.aviator as any) || 'medium';
+    const { crashPoint } = await gameApi.initCrashRound(winControl);
     crashPointRef.current = crashPoint;
     
     let timer = 5.0;
@@ -133,15 +151,6 @@ export default function CrashGame() {
 
   const startFlyingPhase = () => {
     updateGameState('flying');
-    
-    let totalBet = 0;
-    if (bet1.isPlaced) totalBet += parseFloat(bet1.amount || '0');
-    if (bet2.isPlaced) totalBet += parseFloat(bet2.amount || '0');
-    
-    if (totalBet > 0 && currentUser) {
-      updateUserProfile(currentUser.id, { balance: currentUser.balance - totalBet });
-    }
-    
     startTimeRef.current = performance.now();
     
     if (canvasRef.current) {
@@ -253,22 +262,34 @@ export default function CrashGame() {
   const handleBetAction = (betNum: 1 | 2) => {
     const betState = betNum === 1 ? bet1 : bet2;
     const setBetState = betNum === 1 ? setBet1 : setBet2;
+    const user = currentUserRef.current;
     
     if (gameStateRef.current === 'waiting') {
       if (!betState.isPlaced) {
         const amt = parseFloat(betState.amount);
         if (isNaN(amt) || amt <= 0) return alert('Invalid amount');
+        if (!user) return alert('Please log in to place a bet');
+        if (user.balance < amt) return alert('Insufficient balance!');
+        
+        // Deduct bet amount immediately from balance
+        updateUserProfile(user.id, { balance: user.balance - amt });
         setBetState(prev => ({ ...prev, isPlaced: true }));
       } else {
+        // Cancel bet during waiting phase -> refund balance
+        const amt = parseFloat(betState.amount);
+        if (user && !isNaN(amt) && amt > 0) {
+          updateUserProfile(user.id, { balance: user.balance + amt });
+        }
         setBetState(prev => ({ ...prev, isPlaced: false }));
       }
     } else if (gameStateRef.current === 'flying') {
       if (betState.isPlaced && !betState.cashedOutAt) {
         const currentM = multiplierRef.current;
-        const win = parseFloat(betState.amount) * currentM;
+        const amt = parseFloat(betState.amount);
+        const win = parseFloat((amt * currentM).toFixed(2));
         setBetState(prev => ({ ...prev, cashedOutAt: currentM, winAmount: win, isPlaced: false }));
-        if (currentUser) {
-          updateUserProfile(currentUser.id, { balance: currentUser.balance + win });
+        if (user) {
+          updateUserProfile(user.id, { balance: user.balance + win });
         }
       }
     }
