@@ -372,12 +372,12 @@ export default function Mines() {
       </div>
 
       {/* 3. CENTER GAME ARENA (5x5 GRID & LIVE STATUS) */}
-      <div className="flex-1 min-h-0 flex flex-col items-center justify-center px-3 py-1 relative overflow-hidden">
+      <div className="flex-1 min-h-0 flex flex-col items-center justify-center px-3 py-1.5 relative overflow-hidden">
         {/* Subtle Background Radial Glow */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-[#10b981]/5 via-transparent to-transparent pointer-events-none" />
 
         {/* Live Multiplier & Status Capsule */}
-        <div className="w-full max-w-[320px] flex items-center justify-between mb-1.5 px-2.5 py-1 rounded-lg bg-[#121b27] border border-[#213143] text-xs shadow-xs">
+        <div className="w-full max-w-[360px] sm:max-w-[380px] flex items-center justify-between mb-1.5 px-3 py-1 rounded-lg bg-[#121b27] border border-[#213143] text-xs shadow-xs">
           <div className="flex items-center gap-1">
             <span className="text-[10px] text-slate-400 uppercase font-bold">Mines:</span>
             <span className="font-black text-rose-400 flex items-center gap-0.5 text-[11px]">
@@ -397,7 +397,7 @@ export default function Mines() {
         </div>
 
         {/* 5x5 MINES CASINO GRID */}
-        <div className="w-full max-w-[320px] aspect-square grid grid-cols-5 gap-1.5 p-1.5 bg-[#090e15] rounded-2xl border-2 border-[#1c2a3a] shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
+        <div className="w-full max-w-[360px] sm:max-w-[380px] aspect-square grid grid-cols-5 gap-1.5 sm:gap-2 p-2 bg-[#090e15] rounded-2xl border-2 border-[#1c2a3a] shadow-[0_6px_24px_rgba(0,0,0,0.55)]">
           {grid.map((cell, idx) => {
             const isClickable = gameState === 'playing' && !cell.revealed;
 
@@ -427,17 +427,17 @@ export default function Mines() {
               >
                 {/* Visual Unrevealed Accent Dot */}
                 {!cell.revealed && (
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#3b516b]/40 group-hover:bg-[#10b981]/50 transition-colors" />
+                  <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-[#3b516b]/40 group-hover:bg-[#10b981]/50 transition-colors" />
                 )}
 
                 {/* Revealed Gem / Bomb */}
                 {cell.revealed && (
                   cell.isMine ? (
                     <MinesBombVector 
-                      className={`w-7 h-7 sm:w-7.5 sm:h-7.5 drop-shadow-md ${cell.isTriggeredMine ? 'scale-110 animate-bounce' : 'opacity-80'}`} 
+                      className={`w-7.5 h-7.5 sm:w-8.5 sm:h-8.5 drop-shadow-md ${cell.isTriggeredMine ? 'scale-110 animate-bounce' : 'opacity-80'}`} 
                     />
                   ) : (
-                    <MinesGemVector className="w-7 h-7 sm:w-7.5 sm:h-7.5 drop-shadow-[0_2px_8px_rgba(16,185,129,0.8)] animate-[zoomIn_0.2s_ease-out]" />
+                    <MinesGemVector className="w-7.5 h-7.5 sm:w-8.5 sm:h-8.5 drop-shadow-[0_2px_8px_rgba(16,185,129,0.8)] animate-[zoomIn_0.2s_ease-out]" />
                   )
                 )}
               </button>
@@ -446,7 +446,7 @@ export default function Mines() {
         </div>
 
         {/* Snug Game Message / Pick Random Pill */}
-        <div className="h-6 mt-1 flex items-center justify-center w-full max-w-[320px]">
+        <div className="h-6 mt-1 flex items-center justify-center w-full max-w-[360px] sm:max-w-[380px]">
           {gameState === 'exploded' && (
             <div className="flex items-center gap-1.5 bg-rose-950/90 border border-rose-500/50 text-rose-200 px-2.5 py-0.5 rounded-full text-[11px] font-black shadow-md animate-bounce">
               <Flame className="w-3 h-3 text-rose-400" />
