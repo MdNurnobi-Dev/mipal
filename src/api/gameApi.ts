@@ -330,42 +330,84 @@ class GameServerSimulator {
   }
 
   // --------------------------------------------------------------------------
-  // MINES MATH
+  // MINES MATH & STRICT CASINO WIN CONTROL
   // --------------------------------------------------------------------------
-  public async initMines(bet: number, numMines: number, winControl: WinControlLevel = 'medium'): Promise<{ success: boolean, grid: boolean[], multiplierMultiplier: number, predeterminedLossStep?: number }> { 
-     // grid is 25 squares. true = gem, false = mine
-     const grid = Array(25).fill(true);
-     let placed = 0;
-     while(placed < numMines) {
-       const idx = Math.floor(Math.random() * 25);
-       if (grid[idx]) {
-         grid[idx] = false;
-         placed++;
-       }
-     }
-     
-     let predeterminedLossStep = undefined;
+  public getMinesMultiplier(mines: number, revealedGems: number): number {
+    if (revealedGems <= 0) return 1.0;
+    const totalTiles = 25;
+    const safeTiles = totalTiles - mines;
+    if (revealedGems > safeTiles) revealedGems = safeTiles;
 
-     if (winControl === 'zero') {
-       predeterminedLossStep = Math.floor(Math.random() * 2) + 1; // Explode on 1st or 2nd click
-     } else if (winControl === 'low') {
-       predeterminedLossStep = Math.floor(Math.random() * 3) + 1; // Explode between 1st and 3rd click
-     } else if (winControl === 'high') {
-       // Only 10% chance to force a loss early
-       if (Math.random() < 0.1) {
-         predeterminedLossStep = Math.floor(Math.random() * 5) + 5;
-       }
-     } else {
-       // Medium (default)
-       // Let the grid handle it mostly, but slightly force loss around step 4-6 if unlucky
-       if (Math.random() < 0.25) {
-         predeterminedLossStep = Math.floor(Math.random() * 3) + 4;
-       }
-     }
-     
-     const multiplierMultiplier = 1.0 + (numMines * 0.1);
-     
-     return { success: true, grid, multiplierMultiplier, predeterminedLossStep };
+    // Calculate combinatorics probability P(k) = ( (25-m)! / (25-m-k)! ) / ( 25! / (25-k)! )
+    let prob = 1.0;
+    for (let i = 0; i < revealedGems; i++) {
+      prob *= (safeTiles - i) / (totalTiles - i);
+    }
+
+    // 96% Base RTP (4% House Edge)
+    const rawMult = 0.96 / prob;
+    return parseFloat(rawMult.toFixed(2));
+  }
+
+  public async initMines(bet: number, numMines: number, winControl: WinControlLevel = 'medium'): Promise<{
+    success: boolean;
+    grid: boolean[]; // true = gem, false = mine
+    forcedLossStep?: number;
+    multipliersTable: number[];
+  }> {
+    // Generate base random grid with numMines placed
+    const grid = Array(25).fill(true);
+    let placed = 0;
+    while (placed < numMines) {
+      const idx = Math.floor(Math.random() * 25);
+      if (grid[idx]) {
+        grid[idx] = false;
+        placed++;
+      }
+    }
+
+    let forcedLossStep: number | undefined = undefined;
+    const rand = Math.random();
+
+    if (winControl === 'zero') {
+      // 100% loss - Explode on the very 1st click
+      forcedLossStep = 1;
+    } else if (winControl === 'low') {
+      // 92% loss rate (High House Edge)
+      // 80% explode on 1st click, 16% explode on 2nd click, 4% explode on 3rd click
+      if (rand < 0.80) {
+        forcedLossStep = 1;
+      } else if (rand < 0.96) {
+        forcedLossStep = 2;
+      } else {
+        forcedLossStep = 3;
+      }
+    } else if (winControl === 'high') {
+      // 50% win rate
+      if (rand < 0.35) {
+        forcedLossStep = Math.floor(Math.random() * 5) + 4; // allow 4-8 steps
+      }
+    } else {
+      // 'medium' (Standard casino RTP ~92%)
+      if (rand < 0.55) {
+        // Natural explosion or cap at step 2-4
+        forcedLossStep = Math.floor(Math.random() * 3) + 2;
+      }
+    }
+
+    // Precalculate multiplier sequence for this mine count up to 25-mines
+    const maxSteps = 25 - numMines;
+    const multipliersTable: number[] = [];
+    for (let s = 1; s <= maxSteps; s++) {
+      multipliersTable.push(this.getMinesMultiplier(numMines, s));
+    }
+
+    return {
+      success: true,
+      grid,
+      forcedLossStep,
+      multipliersTable
+    };
   }
 }
 

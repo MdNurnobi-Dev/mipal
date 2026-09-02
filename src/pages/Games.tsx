@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Volume2, Search, Flame, Coins, Trophy, Gamepad2, Rocket, Target, Star, ChevronLeft, X, LayoutGrid } from 'lucide-react';
+import { Volume2, Search, Flame, Coins, Trophy, Gamepad2, Rocket, Target, Star, ChevronLeft, X, LayoutGrid, Sparkles } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useCurrency } from '../hooks/useCurrency';
 import { FortuneGemsLobbyThumbnail } from '../components/FortuneGemsLobbyThumbnail';
+import { MinesLobbyThumbnail } from '../components/MinesLobbyThumbnail';
 
 export default function Games() {
   const { currentUser, siteSettings } = useApp();
@@ -25,12 +26,12 @@ export default function Games() {
   }, [banners.length]);
 
   const categories = [
-    { id: 'All', name: 'All Games', icon: LayoutGrid, color: 'text-blue-400' },
-    { id: 'Crash', name: 'Crash', icon: Rocket, color: 'text-red-500' },
-    { id: 'Slots', name: 'Slots', icon: Coins, color: 'text-amber-500' },
-    { id: 'Live', name: 'Live Casino', icon: Crown, color: 'text-purple-500' },
-    { id: 'Table', name: 'Table Games', icon: Target, color: 'text-emerald-500' },
-    { id: 'Arcade', name: 'Arcade', icon: Gamepad2, color: 'text-pink-500' },
+    { id: 'All', name: 'All Games', icon: LayoutGrid, color: 'text-sky-400' },
+    { id: 'Crash', name: 'Crash', icon: Rocket, color: 'text-rose-400' },
+    { id: 'Slots', name: 'Slots', icon: Coins, color: 'text-amber-400' },
+    { id: 'Live', name: 'Live Casino', icon: Sparkles, color: 'text-purple-400' },
+    { id: 'Table', name: 'Table Games', icon: Target, color: 'text-emerald-400' },
+    { id: 'Arcade', name: 'Arcade', icon: Gamepad2, color: 'text-pink-400' },
     { id: 'Sports', name: 'Sports', icon: Trophy, color: 'text-orange-400' },
   ];
 
@@ -204,20 +205,38 @@ export default function Games() {
         </div>
       </div>
 
-      {/* Categories (Horizontal Scroll) */}
-      <div className="flex overflow-x-auto hide-scrollbar px-2 py-3 gap-2 bg-[#121212] shrink-0 border-b border-white/5">
+      {/* Categories (Horizontal Compact Scroll Bar) */}
+      <div className="flex overflow-x-auto hide-scrollbar px-2 py-1.5 gap-1.5 bg-[#161719] shrink-0 border-b border-white/[0.08] sticky top-[41px] z-15 backdrop-blur-md">
         {categories.map((cat) => {
           const Icon = cat.icon;
           const isActive = activeCategory === cat.id;
           return (
-            <div 
+            <button 
               key={cat.id} 
+              type="button"
               onClick={() => setActiveCategory(cat.id)}
-              className={`flex flex-col items-center justify-center min-w-[64px] p-2 rounded-lg cursor-pointer transition-all ${isActive ? 'bg-gradient-to-b from-amber-500/20 to-amber-500/5 border border-amber-500/50 shadow-inner' : 'border border-transparent hover:bg-white/5'}`}
+              className={`flex flex-col items-center justify-center min-w-[54px] sm:min-w-[58px] px-1.5 py-1 rounded-lg cursor-pointer transition-all duration-200 select-none shrink-0 relative ${
+                isActive 
+                  ? 'bg-gradient-to-b from-[#2a2414] to-[#19160d] border border-amber-400/80 shadow-[0_2px_8px_rgba(245,158,11,0.2)]' 
+                  : 'bg-[#1e2025]/60 border border-white/[0.05] hover:bg-[#252830] hover:border-white/15'
+              }`}
             >
-              <Icon className={`w-5 h-5 mb-1 ${isActive ? 'text-amber-400 drop-shadow-md' : cat.color}`} />
-              <span className={`text-[9px] font-bold ${isActive ? 'text-amber-400' : 'text-slate-400'}`}>{cat.name}</span>
-            </div>
+              <div className={`w-6 h-6 rounded-md flex items-center justify-center mb-0.5 transition-all ${
+                isActive 
+                  ? 'bg-amber-400/20 text-amber-300 shadow-[0_0_6px_rgba(245,158,11,0.35)]' 
+                  : 'bg-black/30 text-slate-400 group-hover:text-slate-200'
+              }`}>
+                <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-amber-300' : cat.color}`} strokeWidth={isActive ? 2.5 : 2} />
+              </div>
+              <span className={`text-[9px] tracking-tight whitespace-nowrap leading-tight text-center ${
+                isActive ? 'text-amber-300 font-bold drop-shadow-xs' : 'text-slate-400 font-medium'
+              }`}>
+                {cat.name}
+              </span>
+              {isActive && (
+                <div className="absolute -bottom-[2px] w-3 h-0.5 rounded-full bg-amber-400 shadow-[0_0_4px_#f59e0b]" />
+              )}
+            </button>
           );
         })}
       </div>
@@ -235,6 +254,8 @@ export default function Games() {
               >
                 {game.id === 'fortune_gems' ? (
                   <FortuneGemsLobbyThumbnail className="w-full h-full" />
+                ) : game.id === 'mines' ? (
+                  <MinesLobbyThumbnail className="w-full h-full" />
                 ) : (
                   <>
                     {game.imageUrl && (
