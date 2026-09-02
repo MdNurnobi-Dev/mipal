@@ -89,7 +89,7 @@ export const GarudaWildIcon = ({ className = "w-11 h-11" }: { className?: string
   </svg>
 );
 
-export const RubyGemIcon = ({ className = "w-11 h-11" }: { className?: string }) => (
+export const RubyGemIcon = ({ className = "w-14 h-14" }: { className?: string }) => (
   <svg viewBox="0 0 100 100" className={className}>
     <defs>
       <linearGradient id="rubyBody" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -298,7 +298,7 @@ export const JackGemIcon = ({ className = "w-11 h-11" }: { className?: string })
   </svg>
 );
 
-export const FortuneGemIcon = ({ symbol, className = "w-11 h-11" }: { symbol: GemSymbol; className?: string }) => {
+export const FortuneGemIcon = ({ symbol, className = "w-14 h-14" }: { symbol: GemSymbol; className?: string }) => {
   switch (symbol.id) {
     case 'WILD':
       return <GarudaWildIcon className={className} />;
@@ -658,31 +658,29 @@ export default function FortuneGems() {
                   return (
                     <div 
                       key={rIdx} 
-                      className={`flex-1 relative flex flex-col items-center justify-center overflow-hidden rounded-md transition-all ${
+                      className={`flex-1 relative flex items-center justify-center overflow-hidden rounded-md transition-all p-0.5 ${
                         isWinning
                           ? 'bg-gradient-to-br from-[#ffe066] via-[#f59e0b] to-[#b45309] border-2 border-white shadow-[0_0_15px_rgba(255,204,0,1)] z-10 scale-[1.02] animate-pulse'
                           : 'bg-gradient-to-b from-[#14232e] via-[#0e1b24] to-[#09131a] border border-[#233a4a] hover:border-[#385b73] shadow-inner'
                       } ${spinningCols[cIdx] ? 'opacity-50 blur-[1px] translate-y-full' : 'opacity-100 translate-y-0 transition-transform duration-200'}`}
                     >
-                      <div className="flex flex-col w-full h-full items-center justify-between py-1 px-0.5 relative">
-                        {/* Fortune Gems Custom Gem Artwork */}
-                        <div className="flex-1 flex items-center justify-center w-full">
-                          <FortuneGemIcon 
-                            symbol={symbol} 
-                            className="w-9 h-9 sm:w-11 sm:h-11 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" 
-                          />
-                        </div>
+                      {/* Fortune Gems Custom Gem Artwork - Large & Vivid */}
+                      <div className="w-full h-full flex items-center justify-center p-0.5">
+                        <FortuneGemIcon 
+                          symbol={symbol} 
+                          className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 max-w-[94%] max-h-[94%] drop-shadow-[0_2px_5px_rgba(0,0,0,0.85)] filter hover:scale-105 transition-transform" 
+                        />
+                      </div>
 
-                        {/* Payout Badge */}
-                        <div className="shrink-0 -mt-0.5">
-                          <span className={`text-[7px] font-black leading-none px-1 py-[1px] rounded-full border shadow-sm ${
-                            isWinning 
-                              ? 'bg-black text-[#ffcc00] border-[#ffcc00]' 
-                              : 'bg-black/60 text-[#f5b800] border-[#f5b800]/30'
-                          }`}>
-                            {symbol.payoutMultiplier}x
-                          </span>
-                        </div>
+                      {/* Floating Payout Multiplier Badge */}
+                      <div className="absolute bottom-0.5 right-0.5 sm:bottom-1 sm:right-1 z-10 pointer-events-none">
+                        <span className={`text-[7px] sm:text-[8px] font-black leading-none px-1 py-[1px] rounded-full border shadow-sm ${
+                          isWinning 
+                            ? 'bg-black text-[#ffcc00] border-[#ffcc00]' 
+                            : 'bg-black/80 text-[#f5b800] border-[#f5b800]/40 backdrop-blur-[1px]'
+                        }`}>
+                          {symbol.payoutMultiplier}x
+                        </span>
                       </div>
                     </div>
                   );
@@ -889,9 +887,9 @@ export default function FortuneGems() {
               <div className="grid grid-cols-2 gap-1.5">
                 {SYMBOLS.map(sym => (
                   <div key={sym.id} className="flex items-center justify-between p-1.5 rounded-lg border border-white/10 bg-[#14232d] gap-1.5">
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <FortuneGemIcon symbol={sym} className="w-7 h-7 shrink-0" />
-                      <span className="text-[9px] font-semibold text-white/90 truncate">{sym.name}</span>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <FortuneGemIcon symbol={sym} className="w-8 h-8 shrink-0 drop-shadow-sm" />
+                      <span className="text-[10px] font-semibold text-white/90 truncate">{sym.name}</span>
                     </div>
                     <span className="text-[10px] font-black text-[#f5b800] shrink-0">{sym.payoutMultiplier}x</span>
                   </div>

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Volume2, Search, Flame, Coins, Trophy, Gamepad2, Rocket, Target, Star, ChevronLeft, X, LayoutGrid } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useCurrency } from '../hooks/useCurrency';
+import { FortuneGemsLobbyThumbnail } from '../components/FortuneGemsLobbyThumbnail';
 
 export default function Games() {
   const { currentUser, siteSettings } = useApp();
@@ -232,57 +233,61 @@ export default function Games() {
                 onClick={(e) => !game.active && e.preventDefault()}
                 className={`relative aspect-[3/4] rounded-xl overflow-hidden group border border-white/10 ${game.image} shadow-lg shadow-black/50 ${!game.active ? 'opacity-80' : ''}`}
               >
-                {game.imageUrl && (
-                  <img 
-                    src={game.imageUrl} 
-                    alt={game.name} 
-                    className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                      // Try to add fallback class to parent if needed
-                      const parent = (e.target as HTMLImageElement).parentElement;
-                      if (parent && game.id === 'aviator') {
-                        parent.classList.add('bg-gradient-to-br', 'from-[#4a0a0a]', 'to-[#110101]');
-                        
-                        // Create SVG fallback dynamically
-                        const fallbackDiv = document.createElement('div');
-                        fallbackDiv.className = 'absolute inset-0 flex flex-col items-center justify-center z-0 opacity-80';
-                        fallbackDiv.innerHTML = `
-                          <svg viewBox="0 0 50 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-[#e50b14] drop-shadow-md mb-2 transform -skew-x-12">
-                            <path d="M47.5 10.5C49 10.5 50 11.5 50 13C50 14.5 49 15.5 47.5 15.5L30 15.5L15 23.5L10 23.5L18 15.5L5 15.5L0 12L5 10.5L18 10.5L10 2.5L15 2.5L30 10.5L47.5 10.5Z" fill="currentColor"/>
-                          </svg>
-                          <span class="text-white font-black text-xl tracking-tight leading-none drop-shadow-[0_2px_0_#e50b14]">AVIATOR</span>
-                        `;
-                        parent.appendChild(fallbackDiv);
-                      }
-                    }}
-                  />
-                )}
-                
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent z-10 pointer-events-none"></div>
-                
-                {game.tag && (
-                  <div className="absolute top-0 right-0 bg-red-600 text-white text-[8px] font-black px-2 py-0.5 rounded-bl-lg z-20 shadow-md">
-                    {game.tag}
-                  </div>
-                )}
-                
-                {!game.imageUrl && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center z-0 opacity-50 group-hover:scale-110 transition-transform duration-500">
-                    <game.icon className="w-10 h-10 text-white" strokeWidth={1.5} />
-                  </div>
-                )}
-                
-                <div className="absolute bottom-0 left-0 right-0 p-2 z-20 flex flex-col items-center text-center">
-                  <h3 className="text-white font-black text-[11px] sm:text-sm tracking-tight leading-none mb-1 drop-shadow-md">{game.name}</h3>
-                  <span className="text-[7px] text-amber-400 font-bold uppercase tracking-widest bg-black/50 px-1.5 py-0.5 rounded">{game.provider}</span>
-                  
-                  {!game.active && (
-                    <div className="mt-1.5 bg-white/10 backdrop-blur-md border border-white/20 text-white text-[7px] px-1.5 py-0.5 rounded-full uppercase tracking-wider">
-                      Coming Soon
+                {game.id === 'fortune_gems' ? (
+                  <FortuneGemsLobbyThumbnail className="w-full h-full" />
+                ) : (
+                  <>
+                    {game.imageUrl && (
+                      <img 
+                        src={game.imageUrl} 
+                        alt={game.name} 
+                        className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                          const parent = (e.target as HTMLImageElement).parentElement;
+                          if (parent && game.id === 'aviator') {
+                            parent.classList.add('bg-gradient-to-br', 'from-[#4a0a0a]', 'to-[#110101]');
+                            
+                            const fallbackDiv = document.createElement('div');
+                            fallbackDiv.className = 'absolute inset-0 flex flex-col items-center justify-center z-0 opacity-80';
+                            fallbackDiv.innerHTML = `
+                              <svg viewBox="0 0 50 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-[#e50b14] drop-shadow-md mb-2 transform -skew-x-12">
+                                <path d="M47.5 10.5C49 10.5 50 11.5 50 13C50 14.5 49 15.5 47.5 15.5L30 15.5L15 23.5L10 23.5L18 15.5L5 15.5L0 12L5 10.5L18 10.5L10 2.5L15 2.5L30 10.5L47.5 10.5Z" fill="currentColor"/>
+                              </svg>
+                              <span class="text-white font-black text-xl tracking-tight leading-none drop-shadow-[0_2px_0_#e50b14]">AVIATOR</span>
+                            `;
+                            parent.appendChild(fallbackDiv);
+                          }
+                        }}
+                      />
+                    )}
+                    
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent z-10 pointer-events-none"></div>
+                    
+                    {game.tag && (
+                      <div className="absolute top-0 right-0 bg-red-600 text-white text-[8px] font-black px-2 py-0.5 rounded-bl-lg z-20 shadow-md">
+                        {game.tag}
+                      </div>
+                    )}
+                    
+                    {!game.imageUrl && (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center z-0 opacity-50 group-hover:scale-110 transition-transform duration-500">
+                        <game.icon className="w-10 h-10 text-white" strokeWidth={1.5} />
+                      </div>
+                    )}
+                    
+                    <div className="absolute bottom-0 left-0 right-0 p-2 z-20 flex flex-col items-center text-center">
+                      <h3 className="text-white font-black text-[11px] sm:text-sm tracking-tight leading-none mb-1 drop-shadow-md">{game.name}</h3>
+                      <span className="text-[7px] text-amber-400 font-bold uppercase tracking-widest bg-black/50 px-1.5 py-0.5 rounded">{game.provider}</span>
+                      
+                      {!game.active && (
+                        <div className="mt-1.5 bg-white/10 backdrop-blur-md border border-white/20 text-white text-[7px] px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                          Coming Soon
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
+                  </>
+                )}
               </Link>
             ))}
           </div>
