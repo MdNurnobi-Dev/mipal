@@ -38,7 +38,7 @@ export default function CrashGame() {
   const bet1WinRef = useRef<HTMLSpanElement>(null);
   const bet2WinRef = useRef<HTMLSpanElement>(null);
   const betsRef = useRef({ bet1, bet2 });
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number | null>(null);
   const crashPointRef = useRef<number>(1.00);
   const startTimeRef = useRef<number>(0);
   const prevPosRef = useRef({ x: 10, y: 0 });

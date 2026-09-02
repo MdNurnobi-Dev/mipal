@@ -141,18 +141,18 @@ export const AdminLayout = memo(function AdminLayout({ children }: { children: R
   return (
     <div className="min-h-screen bg-[#F1F5F9] text-[#1E293B] font-sans flex">
       {/* Sidebar - Compact Width */}
-      <aside className="w-[220px] bg-white border-r border-slate-200 flex flex-col shrink-0 transition-all">
-        <div className="h-14 flex items-center px-4 border-b border-slate-200 shrink-0">
+      <aside className="w-[220px] bg-white border-r border-slate-200/80 flex flex-col shrink-0 transition-all">
+        <div className="h-12 flex items-center px-3.5 border-b border-slate-100 shrink-0">
           {siteSettings.logoUrl ? (
-            <img src={siteSettings.logoUrl} alt={siteSettings.siteName} className="h-6 w-auto rounded-md object-contain mr-2" />
+            <img src={siteSettings.logoUrl} alt={siteSettings.siteName} className="h-5 w-auto rounded object-contain mr-2" />
           ) : (
-            <div className="w-6 h-6 bg-slate-900 rounded-md flex items-center justify-center text-white font-bold text-xs mr-2 shadow-sm">{siteSettings.siteName.charAt(0).toUpperCase()}</div>
+            <div className="w-5 h-5 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded flex items-center justify-center font-semibold text-[10px] mr-2 shadow-2xs">{siteSettings.siteName.charAt(0).toUpperCase()}</div>
           )}
-          <span className="font-bold text-sm text-slate-800 tracking-tight">{siteSettings.siteName} <span className="text-indigo-600">Admin</span></span>
+          <span className="font-semibold text-xs text-slate-800 tracking-tight">{siteSettings.siteName} <span className="text-indigo-600 font-medium">Admin</span></span>
         </div>
         
-        <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1 no-scrollbar">
-          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-2">Navigation</p>
+        <div className="flex-1 overflow-y-auto py-3 px-2.5 space-y-0.5 no-scrollbar">
+          <p className="text-[9px] font-medium text-slate-400 uppercase tracking-wider mb-2 px-2">Navigation</p>
           
           {navGroups.map(group => {
             const Icon = group.icon;
@@ -165,8 +165,8 @@ export const AdminLayout = memo(function AdminLayout({ children }: { children: R
                   key={group.id} 
                   to={group.path}
                   className={cn(
-                    "flex items-center gap-2.5 px-3 py-2 rounded-lg font-semibold text-[11px] transition-colors",
-                    isActive ? "bg-indigo-50 text-indigo-700" : "text-slate-600 hover:bg-slate-50"
+                    "flex items-center gap-2 px-2.5 py-1.5 rounded-lg font-medium text-[11px] transition-colors",
+                    isActive ? "bg-indigo-50 text-indigo-700 font-medium" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                   )}
                 >
                   <Icon className="w-3.5 h-3.5" />
@@ -184,19 +184,19 @@ export const AdminLayout = memo(function AdminLayout({ children }: { children: R
                 <button
                   onClick={() => toggleGroup(group.id)}
                   className={cn(
-                    "w-full flex items-center justify-between px-3 py-2 rounded-lg font-semibold text-[11px] transition-colors",
-                    hasActiveChild && !isOpen ? "bg-indigo-50/50 text-indigo-700" : "text-slate-600 hover:bg-slate-50"
+                    "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg font-medium text-[11px] transition-colors",
+                    hasActiveChild && !isOpen ? "bg-indigo-50/50 text-indigo-700" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                   )}
                 >
-                  <div className="flex items-center gap-2.5">
-                    <Icon className={cn("w-3.5 h-3.5", hasActiveChild ? "text-indigo-600" : "")} />
+                  <div className="flex items-center gap-2">
+                    <Icon className={cn("w-3.5 h-3.5", hasActiveChild ? "text-indigo-600" : "text-slate-400")} />
                     <span>{group.name}</span>
                   </div>
-                  {isOpen ? <ChevronDown className="w-3.5 h-3.5 opacity-50" /> : <ChevronRight className="w-3.5 h-3.5 opacity-50" />}
+                  {isOpen ? <ChevronDown className="w-3.5 h-3.5 opacity-40" /> : <ChevronRight className="w-3.5 h-3.5 opacity-40" />}
                 </button>
                 
                 {isOpen && group.items && (
-                  <div className="pl-5 pr-1 py-1 space-y-0.5">
+                  <div className="pl-4 pr-1 py-0.5 space-y-0.5">
                     {group.items.map(item => {
                       const SubIcon = item.icon;
                       const isActive = location.pathname === item.path;
@@ -205,13 +205,13 @@ export const AdminLayout = memo(function AdminLayout({ children }: { children: R
                           key={item.path}
                           to={item.path}
                           className={cn(
-                            "flex items-center gap-2 px-3 py-1.5 rounded-md font-medium text-[10px] transition-colors",
+                            "flex items-center gap-2 px-2.5 py-1 rounded-md font-normal text-[10px] transition-colors",
                             isActive 
-                              ? "bg-indigo-50 text-indigo-700 font-bold" 
+                              ? "bg-indigo-50 text-indigo-700 font-medium" 
                               : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
                           )}
                         >
-                          {SubIcon && <SubIcon className="w-3 h-3 opacity-70" />}
+                          {SubIcon && <SubIcon className="w-3 h-3 opacity-60" />}
                           {!SubIcon && <div className={cn("w-1 h-1 rounded-full", isActive ? "bg-indigo-600" : "bg-slate-300")} />}
                           {item.name}
                         </Link>
@@ -224,13 +224,13 @@ export const AdminLayout = memo(function AdminLayout({ children }: { children: R
           })}
         </div>
         
-        <div className="p-3 border-t border-slate-200">
+        <div className="p-2.5 border-t border-slate-100">
           <button 
             onClick={() => {
               logout();
               navigate('/admin/login');
             }}
-            className="flex items-center gap-2.5 w-full px-3 py-2 text-slate-600 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors text-[11px] font-semibold"
+            className="flex items-center gap-2 w-full px-2.5 py-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-600 rounded-lg transition-colors text-[11px] font-medium"
           >
             <LogOut className="w-3.5 h-3.5" />
             Sign Out
@@ -240,19 +240,19 @@ export const AdminLayout = memo(function AdminLayout({ children }: { children: R
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        <header className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0">
-          <h2 className="font-bold text-sm text-slate-800">Control Panel</h2>
-          <div className="flex items-center gap-3">
+        <header className="h-12 bg-white border-b border-slate-200/80 flex items-center justify-between px-4 shrink-0">
+          <h2 className="font-medium text-xs text-slate-700">Control Panel</h2>
+          <div className="flex items-center gap-2.5">
             <div className="flex flex-col items-end">
-              <span className="text-[11px] font-bold text-slate-800 leading-tight">Super Admin</span>
-              <span className="text-[9px] text-slate-500">System Owner</span>
+              <span className="text-[10px] font-medium text-slate-800 leading-tight">Super Admin</span>
+              <span className="text-[9px] text-slate-400">System Owner</span>
             </div>
-            <div className="w-7 h-7 rounded-md bg-slate-900 text-white flex items-center justify-center font-bold text-[10px] shadow-sm">
+            <div className="w-6 h-6 rounded bg-indigo-50 border border-indigo-200 text-indigo-700 flex items-center justify-center font-medium text-[9px] shadow-2xs">
               SA
             </div>
           </div>
         </header>
-        <main className="flex-1 overflow-y-auto p-6 bg-slate-50/50">
+        <main className="flex-1 overflow-y-auto p-4 bg-slate-50/70">
           {children}
         </main>
       </div>

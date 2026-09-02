@@ -121,27 +121,30 @@ export default function AdminManageGames() {
                     <div className="inline-flex bg-slate-100 p-1 rounded-lg border border-slate-200">
                       {['zero', 'low', 'medium', 'high'].map(level => {
                         const isSelected = gameWinControls[game.id] === level;
-                        const labels: Record<string, string> = {
-                          zero: 'Zero',
-                          low: 'Low',
-                          medium: 'Medium',
-                          high: 'High'
+                        const labels: Record<string, { name: string; rate: string }> = {
+                          zero: { name: 'Zero', rate: '0% Win' },
+                          low: { name: 'Low', rate: '8% Win (92% Loss)' },
+                          medium: { name: 'Medium', rate: '18% Win' },
+                          high: { name: 'High', rate: '45% Win' }
                         };
                         const colors: Record<string, string> = {
-                          zero: 'text-rose-600 bg-white shadow-sm ring-1 ring-slate-200',
-                          low: 'text-orange-600 bg-white shadow-sm ring-1 ring-slate-200',
-                          medium: 'text-indigo-600 bg-white shadow-sm ring-1 ring-slate-200',
-                          high: 'text-emerald-600 bg-white shadow-sm ring-1 ring-slate-200'
+                          zero: 'text-rose-600 bg-white shadow-xs border border-rose-200 font-semibold',
+                          low: 'text-orange-600 bg-white shadow-xs border border-orange-200 font-semibold',
+                          medium: 'text-indigo-600 bg-white shadow-xs border border-indigo-200 font-semibold',
+                          high: 'text-emerald-600 bg-white shadow-xs border border-emerald-200 font-semibold'
                         };
                         return (
                           <button
                             key={level}
+                            type="button"
                             onClick={() => handleWinControlChange(game.id, level)}
-                            className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${
-                              isSelected ? colors[level] : 'text-slate-500 hover:text-slate-700'
+                            title={`${labels[level].name}: ${labels[level].rate}`}
+                            className={`px-2.5 py-1 text-[11px] rounded-md transition-all flex flex-col items-center leading-tight ${
+                              isSelected ? colors[level] : 'text-slate-500 hover:text-slate-700 font-normal hover:bg-slate-200/60'
                             }`}
                           >
-                            {labels[level]}
+                            <span>{labels[level].name}</span>
+                            <span className="text-[9px] opacity-75">{level === 'low' ? '92% Loss' : labels[level].rate}</span>
                           </button>
                         );
                       })}

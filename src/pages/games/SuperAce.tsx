@@ -31,7 +31,7 @@ export default function SuperAce() {
   const [showBetMenu, setShowBetMenu] = useState(false);
   const [isMuted, setIsMuted] = useState(audioSystem.isMuted);
   const BET_OPTIONS = [0.5, 1, 5, 10, 20, 50, 100, 200, 500, 1000];
-  const handleSpinRef = useRef<() => void>();
+  const handleSpinRef = useRef<(() => void) | null>(null);
   
   useEffect(() => {
     const initialGrid = Array(COLS).fill(0).map(() => 
