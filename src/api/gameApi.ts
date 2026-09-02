@@ -42,15 +42,20 @@ class GameServerSimulator {
     let isWin = false;
     let isNearMiss = false;
 
-    if (r < 0.05) {
-      multiplier = 2 + (Math.random() * 8);
+    // Significantly reduced win rates and payouts for Super Ace (Slots)
+    if (r < 0.02) { 
+      // 2% chance for a moderate win (1.5x to 4.0x)
+      multiplier = 1.5 + (Math.random() * 2.5);
       isWin = true;
-    } else if (r < 0.35) {
-      multiplier = 0.2 + (Math.random() * 1.0);
+    } else if (r < 0.17) { 
+      // 15% chance for a "fake win" (0.1x to 0.5x) where they get back less than they bet
+      multiplier = 0.1 + (Math.random() * 0.4);
       isWin = true;
-    } else if (r < 0.50) {
+    } else if (r < 0.40) { 
+      // 23% chance of near miss (visual tease, no payout)
       isNearMiss = true;
-    } else {
+    } else { 
+      // 60% chance of total loss (0x)
       multiplier = 0;
     }
 

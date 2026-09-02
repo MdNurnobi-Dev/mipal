@@ -21,3 +21,35 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
   display: none;
 }
 
+@keyframes coinFall {
+  0% {
+    opacity: 1;
+    transform: translateY(-100px) translateX(var(--tw-translate-x)) scale(var(--coin-scale)) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(800px) translateX(var(--tw-translate-x)) scale(var(--coin-scale)) rotate(var(--coin-rotate));
+  }
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.2) translateY(150px) rotateX(60deg); opacity: 0; }
+  60% { transform: scale(1.1) translateY(-10px) rotateX(-10deg); opacity: 1; }
+  100% { transform: scale(1) translateY(0) rotateX(0deg); opacity: 1; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(-5px); }
+  50% { transform: translateY(5px); }
+}
+
+@keyframes sweep {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+@keyframes scaleUp {
+  0% { opacity: 0; transform: scale(0.5); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
