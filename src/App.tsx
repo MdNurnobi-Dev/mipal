@@ -29,6 +29,7 @@ const CrashGame = lazy(() => import('./pages/games/Crash'));
 const SuperAce = lazy(() => import('./pages/games/SuperAce'));
 const FortuneGems = lazy(() => import('./pages/games/FortuneGems'));
 const Mines = lazy(() => import('./pages/games/Mines'));
+const FlyX = lazy(() => import('./pages/games/FlyX'));
 const PlatformActivity = lazy(() => import('./pages/PlatformActivity'));
 
 // Admin Dashboard & Management Pages - Lazy Loaded in isolated chunk
@@ -215,6 +216,8 @@ export default function App() {
                     <Route path="/games/slots/super-ace" element={<SuperAce />} />
                     <Route path="/games/slots/fortune-gems" element={<FortuneGems />} />
                     <Route path="/games/mines" element={<Mines />} />
+                    <Route path="/games/fly-x" element={<FlyX />} />
+                    <Route path="/games/fly_x" element={<FlyX />} />
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/refer" element={<Refer />} />
                     <Route path="/deposit" element={<Deposit />} />

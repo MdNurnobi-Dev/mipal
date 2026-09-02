@@ -31,7 +31,7 @@ export default function AdminManageGames() {
         super_ace: true,
         fortune_gems: true,
         mines: true,
-        fly_x: false,
+        fly_x: true,
         spaceman: false,
         wild_bounty: false
       });
@@ -46,7 +46,7 @@ export default function AdminManageGames() {
         super_ace: 'medium',
         fortune_gems: 'medium',
         mines: 'medium',
-        fly_x: 'medium',
+        fly_x: 'low',
         spaceman: 'medium',
         wild_bounty: 'medium'
       });

@@ -216,8 +216,8 @@ export default function CrashGame() {
     
     const targetY = startY - (startY - 20) * Math.min(1, (currentMult - 1) / 5); 
 
-    const currentX = targetX;
-    const currentY = Math.max(20, targetY);
+    const currentX = Number.isFinite(targetX) ? targetX : startX;
+    const currentY = Number.isFinite(targetY) ? Math.max(20, targetY) : 20;
 
     ctx.beginPath();
     ctx.moveTo(startX, startY);
@@ -225,10 +225,18 @@ export default function CrashGame() {
     ctx.lineTo(currentX, startY);
     ctx.closePath();
     
-    const gradient = ctx.createLinearGradient(0, currentY, 0, startY);
-    gradient.addColorStop(0, 'rgba(229, 11, 20, 0.6)');
-    gradient.addColorStop(1, 'rgba(229, 11, 20, 0.0)');
-    ctx.fillStyle = gradient;
+    if (Number.isFinite(currentY) && Number.isFinite(startY)) {
+      try {
+        const gradient = ctx.createLinearGradient(0, currentY, 0, startY);
+        gradient.addColorStop(0, 'rgba(229, 11, 20, 0.6)');
+        gradient.addColorStop(1, 'rgba(229, 11, 20, 0.0)');
+        ctx.fillStyle = gradient;
+      } catch {
+        ctx.fillStyle = 'rgba(229, 11, 20, 0.3)';
+      }
+    } else {
+      ctx.fillStyle = 'rgba(229, 11, 20, 0.3)';
+    }
     ctx.fill();
 
     ctx.beginPath();

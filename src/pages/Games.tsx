@@ -5,6 +5,7 @@ import { useApp } from '../context/AppContext';
 import { useCurrency } from '../hooks/useCurrency';
 import { FortuneGemsLobbyThumbnail } from '../components/FortuneGemsLobbyThumbnail';
 import { MinesLobbyThumbnail } from '../components/MinesLobbyThumbnail';
+import { FlyXLobbyThumbnail } from '../components/FlyXLobbyThumbnail';
 
 export default function Games() {
   const { currentUser, siteSettings } = useApp();
@@ -83,11 +84,12 @@ export default function Games() {
       id: 'fly_x',
       name: 'FLY X',
       provider: 'MICROGAMING',
-      image: 'bg-gradient-to-br from-slate-800 to-black',
+      image: 'bg-gradient-to-br from-cyan-900 to-slate-950',
       icon: Rocket,
-      path: '#',
+      path: '/games/fly-x',
+      tag: 'NEW',
       category: 'Crash',
-      active: siteSettings?.gameStates ? !!siteSettings.gameStates['fly_x'] : false
+      active: siteSettings?.gameStates && siteSettings.gameStates['fly_x'] !== undefined ? !!siteSettings.gameStates['fly_x'] : true
     },
     {
       id: 'spaceman',
@@ -256,6 +258,8 @@ export default function Games() {
                   <FortuneGemsLobbyThumbnail className="w-full h-full" />
                 ) : game.id === 'mines' ? (
                   <MinesLobbyThumbnail className="w-full h-full" />
+                ) : game.id === 'fly_x' ? (
+                  <FlyXLobbyThumbnail className="w-full h-full" />
                 ) : (
                   <>
                     {game.imageUrl && (
