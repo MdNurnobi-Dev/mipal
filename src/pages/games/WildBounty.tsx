@@ -568,9 +568,9 @@ export default function WildBounty() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#140a05] font-sans text-slate-100 select-none pb-8">
+    <div className="fixed inset-0 z-[100] flex flex-col bg-[#140a05] font-sans text-slate-100 select-none overflow-hidden">
       {/* Top Header Navigation (Ultra-Compact) */}
-      <div className="flex items-center justify-between px-2 py-1 bg-[#1a0c05] border-b border-amber-900/30 sticky top-0 z-30 shadow-sm h-10">
+      <div className="flex items-center justify-between px-2 py-1 bg-[#1a0c05] border-b border-amber-900/30 shrink-0 z-30 shadow-sm h-10">
         <div className="flex items-center gap-1.5">
           <Link 
             to="/games" 
@@ -637,7 +637,7 @@ export default function WildBounty() {
       </div>
 
       {/* Main Game Stage Container */}
-      <div className="max-w-xl mx-auto w-full px-2 pt-2 flex-1 flex flex-col gap-2">
+      <div className="max-w-xl mx-auto w-full px-2 pt-2 flex-1 flex flex-col gap-2 overflow-y-auto no-scrollbar pb-6 relative">
         
         {/* BOUNTY BULLET MULTIPLIER TRACK (1x -> 1024x) */}
         <div className="bg-[#1a0c05] border border-amber-900/30 rounded-xl p-1.5 flex items-center gap-2 shadow-sm max-w-lg mx-auto w-full">

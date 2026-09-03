@@ -893,9 +893,9 @@ export default function Spaceman() {
   };
 
   return (
-    <div className="min-h-screen bg-[#000000] text-slate-200 pb-16 select-none font-sans overflow-x-hidden">
+    <div className="fixed inset-0 z-[100] flex flex-col bg-[#000000] text-slate-200 select-none font-sans overflow-hidden">
       {/* Top Header Bar - Clean Aviator Dark Style with Zero Overflow */}
-      <header className="bg-[#181a20] border-b border-white/10 sticky top-0 z-40 px-2 py-1 backdrop-blur-md">
+      <header className="shrink-0 bg-[#181a20] border-b border-white/10 px-2 py-1 relative z-40">
         <div className="max-w-4xl mx-auto flex items-center justify-between gap-1.5">
           {/* Left: Back & Brand */}
           <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
@@ -961,8 +961,9 @@ export default function Spaceman() {
       </header>
 
       {/* Main Container */}
-      <main className="max-w-4xl mx-auto px-2 pt-2 space-y-2">
-        {/* Game Status Check: If disabled in Admin Panel */}
+      <main className="flex-1 w-full max-w-4xl mx-auto flex flex-col overflow-y-auto no-scrollbar pb-2 relative z-10">
+        <div className="px-2 pt-2 space-y-2 flex-1 flex flex-col">
+          {/* Game Status Check: If disabled in Admin Panel */}
         {!isGameActive && (
           <div className="bg-rose-950/80 border border-rose-500/40 p-2.5 rounded-xl flex items-center justify-between text-rose-200 text-xs">
             <div className="flex items-center gap-2">
@@ -1073,8 +1074,11 @@ export default function Spaceman() {
           )}
         </div>
 
+        {/* Spacer to push controls down */}
+        <div className="flex-1 min-h-[4px]"></div>
+
         {/* Betting Control Deck - Authentic Aviator / Spribe Solid Design */}
-        <div className="bg-[#141518] rounded-xl p-2 border border-white/10 shadow-xl flex flex-col justify-center">
+        <div className="bg-[#141518] rounded-xl p-2 border border-white/10 shadow-xl flex flex-col justify-center shrink-0">
           {/* Bet / Auto Tab Selector */}
           <div className="flex items-center justify-center mx-auto bg-[#0b0c0e] rounded-md p-0.5 w-32 border border-white/5 mb-1.5">
             <button
@@ -1244,7 +1248,7 @@ export default function Spaceman() {
         </div>
 
         {/* My Bets Panel (Scrollbar completely hidden) */}
-        <div className="bg-[#141518] rounded-xl border border-white/10 overflow-hidden shadow-lg">
+        <div className="bg-[#141518] rounded-xl border border-white/10 overflow-hidden shadow-lg shrink-0">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-white/10 px-3 py-2 bg-[#101216]">
             <div className="text-xs font-bold text-slate-200">
@@ -1292,6 +1296,7 @@ export default function Spaceman() {
               </>
             )}
           </div>
+        </div>
         </div>
       </main>
 
