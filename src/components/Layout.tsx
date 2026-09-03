@@ -322,7 +322,7 @@ export const Layout = memo(function Layout({ children }: { children: React.React
 
       </div>
 
-      <main className="p-3 overflow-y-auto h-full pt-[60px] pb-[70px] no-scrollbar">
+      <main className={`overflow-y-auto h-full pt-[60px] pb-[70px] no-scrollbar ${location.pathname === '/games' ? 'px-0' : 'p-3'}`}>
         {children}
       </main>
       <BottomNav />

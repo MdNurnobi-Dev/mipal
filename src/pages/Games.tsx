@@ -114,6 +114,406 @@ export default function Games() {
       tag: 'HOT',
       category: 'Slots',
       active: siteSettings?.gameStates && siteSettings.gameStates['wild_bounty'] !== undefined ? !!siteSettings.gameStates['wild_bounty'] : true
+    },
+    {
+      id: 'gates_of_olympus',
+      name: 'Gates of Olympus',
+      provider: 'PRAGMATIC PLAY',
+      image: 'bg-gradient-to-br from-purple-800 to-yellow-900',
+      icon: Sparkles,
+      path: '#',
+      category: 'Slots',
+      active: false
+    },
+    {
+      id: 'sweet_bonanza',
+      name: 'Sweet Bonanza',
+      provider: 'PRAGMATIC PLAY',
+      image: 'bg-gradient-to-br from-pink-500 to-rose-700',
+      icon: Star,
+      path: '#',
+      category: 'Slots',
+      active: false
+    },
+    {
+      id: 'crazy_time',
+      name: 'Crazy Time',
+      provider: 'EVOLUTION',
+      image: 'bg-gradient-to-br from-purple-600 to-blue-800',
+      icon: Trophy,
+      path: '#',
+      category: 'Live',
+      active: false
+    },
+    {
+      id: 'lightning_roulette',
+      name: 'Lightning Roulette',
+      provider: 'EVOLUTION',
+      image: 'bg-gradient-to-br from-red-700 to-black',
+      icon: Target,
+      path: '#',
+      category: 'Live',
+      active: false
+    },
+    {
+      id: 'plinko',
+      name: 'PLINKO',
+      provider: 'STAKE',
+      image: 'bg-gradient-to-br from-emerald-600 to-teal-900',
+      icon: Gamepad2,
+      path: '#',
+      category: 'Arcade',
+      active: false
+    },
+    {
+      id: 'dice',
+      name: 'DICE',
+      provider: 'STAKE',
+      image: 'bg-gradient-to-br from-slate-600 to-slate-900',
+      icon: LayoutGrid,
+      path: '#',
+      category: 'Arcade',
+      active: false
+    },
+    {
+      id: 'hilo',
+      name: 'HILO',
+      provider: 'STAKE',
+      image: 'bg-gradient-to-br from-indigo-500 to-blue-900',
+      icon: Flame,
+      path: '#',
+      category: 'Arcade',
+      active: false
+    },
+    {
+      id: 'limbo',
+      name: 'LIMBO',
+      provider: 'STAKE',
+      image: 'bg-gradient-to-br from-cyan-600 to-blue-900',
+      icon: Rocket,
+      path: '#',
+      category: 'Crash',
+      active: false
+    },
+    {
+      id: 'jetx',
+      name: 'JetX',
+      provider: 'SMARTSOFT',
+      image: 'bg-gradient-to-br from-yellow-500 to-orange-700',
+      icon: Rocket,
+      path: '#',
+      category: 'Crash',
+      active: false
+    },
+    {
+      id: 'book_of_dead',
+      name: 'Book of Dead',
+      provider: 'PLAY\'N GO',
+      image: 'bg-gradient-to-br from-yellow-700 to-amber-900',
+      icon: Coins,
+      path: '#',
+      category: 'Slots',
+      active: false
+    },
+    {
+      id: 'starburst',
+      name: 'Starburst',
+      provider: 'NETENT',
+      image: 'bg-gradient-to-br from-fuchsia-600 to-purple-900',
+      icon: Sparkles,
+      path: '#',
+      category: 'Slots',
+      active: false
+    },
+    {
+      id: 'golden_empire',
+      name: 'Golden Empire',
+      provider: 'JILI',
+      image: 'bg-gradient-to-br from-yellow-600 to-yellow-900',
+      icon: Coins,
+      path: '#',
+      category: 'Slots',
+      active: false
+    },
+    {
+      id: 'mega_wheel',
+      name: 'Mega Wheel',
+      provider: 'PRAGMATIC PLAY',
+      image: 'bg-gradient-to-br from-orange-500 to-red-700',
+      icon: Target,
+      path: '#',
+      category: 'Live',
+      active: false
+    },
+    {
+      id: 'baccarat',
+      name: 'Baccarat',
+      provider: 'EVOLUTION',
+      image: 'bg-gradient-to-br from-emerald-800 to-emerald-950',
+      icon: Target,
+      path: '#',
+      category: 'Table',
+      active: false
+    },
+    {
+      id: 'blackjack',
+      name: 'Blackjack',
+      provider: 'EVOLUTION',
+      image: 'bg-gradient-to-br from-stone-700 to-black',
+      icon: Target,
+      path: '#',
+      category: 'Table',
+      active: false
+    },
+    {
+      id: 'monopoly_live',
+      name: 'Monopoly Live',
+      provider: 'EVOLUTION',
+      image: 'bg-gradient-to-br from-cyan-500 to-blue-700',
+      icon: Gamepad2,
+      path: '#',
+      category: 'Live',
+      active: false
+    },
+    {
+      id: 'keno',
+      name: 'KENO',
+      provider: 'STAKE',
+      image: 'bg-gradient-to-br from-teal-500 to-emerald-800',
+      icon: LayoutGrid,
+      path: '#',
+      category: 'Arcade',
+      active: false
+    },
+    {
+      id: 'roulette',
+      name: 'Roulette',
+      provider: 'EVOLUTION',
+      image: 'bg-gradient-to-br from-rose-700 to-red-950',
+      icon: Target,
+      path: '#',
+      category: 'Table',
+      active: false
+    },
+    {
+      id: 'zeppelin',
+      name: 'Zeppelin',
+      provider: 'BETSOLUTIONS',
+      image: 'bg-gradient-to-br from-yellow-400 to-amber-700',
+      icon: Rocket,
+      path: '#',
+      category: 'Crash',
+      active: false
+    },
+    {
+      id: 'money_train_3',
+      name: 'Money Train 3',
+      provider: 'RELAX GAMING',
+      image: 'bg-gradient-to-br from-zinc-600 to-zinc-900',
+      icon: Coins,
+      path: '#',
+      category: 'Slots',
+      active: false
+    },
+    {
+      id: 'starlight_princess',
+      name: 'Starlight Princess',
+      provider: 'PRAGMATIC PLAY',
+      image: 'bg-gradient-to-br from-pink-600 to-fuchsia-800',
+      icon: Sparkles,
+      path: '#',
+      category: 'Slots',
+      active: false
+    },
+    {
+      id: 'sugar_rush',
+      name: 'Sugar Rush',
+      provider: 'PRAGMATIC PLAY',
+      image: 'bg-gradient-to-br from-purple-400 to-pink-600',
+      icon: Star,
+      path: '#',
+      category: 'Slots',
+      active: false
+    },
+    {
+      id: 'dog_house',
+      name: 'The Dog House',
+      provider: 'PRAGMATIC PLAY',
+      image: 'bg-gradient-to-br from-blue-500 to-cyan-700',
+      icon: Coins,
+      path: '#',
+      category: 'Slots',
+      active: false
+    },
+    {
+      id: 'big_bass_bonanza',
+      name: 'Big Bass Bonanza',
+      provider: 'PRAGMATIC PLAY',
+      image: 'bg-gradient-to-br from-green-500 to-teal-700',
+      icon: Coins,
+      path: '#',
+      category: 'Slots',
+      active: false
+    },
+    {
+      id: 'reactoonz',
+      name: 'Reactoonz',
+      provider: 'PLAY\'N GO',
+      image: 'bg-gradient-to-br from-blue-700 to-indigo-900',
+      icon: Sparkles,
+      path: '#',
+      category: 'Slots',
+      active: false
+    },
+    {
+      id: 'legacy_of_dead',
+      name: 'Legacy of Dead',
+      provider: 'PLAY\'N GO',
+      image: 'bg-gradient-to-br from-yellow-700 to-red-900',
+      icon: Coins,
+      path: '#',
+      category: 'Slots',
+      active: false
+    },
+    {
+      id: 'razor_shark',
+      name: 'Razor Shark',
+      provider: 'PUSH GAMING',
+      image: 'bg-gradient-to-br from-cyan-600 to-blue-800',
+      icon: Target,
+      path: '#',
+      category: 'Slots',
+      active: false
+    },
+    {
+      id: 'jammin_jars',
+      name: 'Jammin\' Jars',
+      provider: 'PUSH GAMING',
+      image: 'bg-gradient-to-br from-rose-500 to-purple-700',
+      icon: Sparkles,
+      path: '#',
+      category: 'Slots',
+      active: false
+    },
+    {
+      id: 'fruit_party',
+      name: 'Fruit Party',
+      provider: 'PRAGMATIC PLAY',
+      image: 'bg-gradient-to-br from-green-400 to-orange-500',
+      icon: Star,
+      path: '#',
+      category: 'Slots',
+      active: false
+    },
+    {
+      id: 'wanted_dead_or_wild',
+      name: 'Wanted Dead or a Wild',
+      provider: 'HACKSAW',
+      image: 'bg-gradient-to-br from-stone-600 to-zinc-900',
+      icon: Coins,
+      path: '#',
+      category: 'Slots',
+      active: false
+    },
+    {
+      id: 'chaos_crew',
+      name: 'Chaos Crew',
+      provider: 'HACKSAW',
+      image: 'bg-gradient-to-br from-green-600 to-black',
+      icon: Sparkles,
+      path: '#',
+      category: 'Slots',
+      active: false
+    },
+    {
+      id: 'dream_catcher',
+      name: 'Dream Catcher',
+      provider: 'EVOLUTION',
+      image: 'bg-gradient-to-br from-yellow-500 to-amber-700',
+      icon: Trophy,
+      path: '#',
+      category: 'Live',
+      active: false
+    },
+    {
+      id: 'mega_ball',
+      name: 'Mega Ball',
+      provider: 'EVOLUTION',
+      image: 'bg-gradient-to-br from-teal-500 to-cyan-700',
+      icon: Target,
+      path: '#',
+      category: 'Live',
+      active: false
+    },
+    {
+      id: 'deal_or_no_deal',
+      name: 'Deal or No Deal',
+      provider: 'EVOLUTION',
+      image: 'bg-gradient-to-br from-red-600 to-stone-900',
+      icon: Gamepad2,
+      path: '#',
+      category: 'Live',
+      active: false
+    },
+    {
+      id: 'lightning_dice',
+      name: 'Lightning Dice',
+      provider: 'EVOLUTION',
+      image: 'bg-gradient-to-br from-yellow-600 to-black',
+      icon: LayoutGrid,
+      path: '#',
+      category: 'Live',
+      active: false
+    },
+    {
+      id: 'space_xy',
+      name: 'Space XY',
+      provider: 'BGAMING',
+      image: 'bg-gradient-to-br from-slate-700 to-slate-900',
+      icon: Rocket,
+      path: '#',
+      category: 'Crash',
+      active: false
+    },
+    {
+      id: 'aviatrix',
+      name: 'Aviatrix',
+      provider: 'AVIATRIX',
+      image: 'bg-gradient-to-br from-blue-500 to-indigo-800',
+      icon: Rocket,
+      path: '#',
+      category: 'Crash',
+      active: false
+    },
+    {
+      id: 'penalty_shootout',
+      name: 'Penalty Shoot-out',
+      provider: 'EVOPLAY',
+      image: 'bg-gradient-to-br from-emerald-600 to-green-900',
+      icon: Target,
+      path: '#',
+      category: 'Arcade',
+      active: false
+    },
+    {
+      id: 'baccarat_squeeze',
+      name: 'Baccarat Squeeze',
+      provider: 'EVOLUTION',
+      image: 'bg-gradient-to-br from-red-800 to-red-950',
+      icon: Target,
+      path: '#',
+      category: 'Table',
+      active: false
+    },
+    {
+      id: 'dragon_tiger',
+      name: 'Dragon Tiger',
+      provider: 'EVOLUTION',
+      image: 'bg-gradient-to-br from-orange-500 to-red-700',
+      icon: Flame,
+      path: '#',
+      category: 'Table',
+      active: false
     }
   ];
 

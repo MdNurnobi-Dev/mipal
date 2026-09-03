@@ -1,3 +1,4 @@
+import { useGameFullscreen } from '../../hooks/useGameFullscreen';
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import { ArrowLeft, Settings, RotateCcw, Zap, Wifi, Coins, Volume2, VolumeX } from 'lucide-react';
@@ -16,6 +17,7 @@ const COLS = 5;
 const ROWS = 4;
 
 export default function SuperAce() {
+  useGameFullscreen();
   const { currentUser, updateUserProfile, siteSettings } = useApp();
   
   const [bet, setBet] = useState(0.5);
@@ -128,7 +130,7 @@ export default function SuperAce() {
   const getCardDetails = (id: string) => CARDS.find(c => c.id === id) || CARDS[0];
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-[#03151f] font-sans overflow-hidden text-white">
+    <div className="fixed inset-0 z-[100] flex flex-col w-full h-full overflow-hidden bg-[#03151f] font-sans text-white">
       <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-[#1c0808] to-transparent pointer-events-none"></div>
 
       <Link to="/games" className="absolute top-1 left-1 z-50 w-6 h-6 flex items-center justify-center bg-black/40 rounded-full border border-white/20 active:scale-95 text-[#f0ba4e]">
@@ -155,7 +157,7 @@ export default function SuperAce() {
            </div>
         </div>
 
-        <div className="w-full max-w-[260px] mx-auto mt-1.5 bg-gradient-to-b from-[#2a1705] to-[#120902] rounded-full p-1 border-2 border-[#5c3a12] shadow-[0_4px_10px_rgba(0,0,0,0.8)] flex justify-between gap-1 relative overflow-hidden">
+        <div className="w-full mt-1.5 bg-gradient-to-b from-[#2a1705] to-[#120902] rounded-full p-1 border-2 border-[#5c3a12] shadow-[0_4px_10px_rgba(0,0,0,0.8)] flex justify-between gap-1 relative overflow-hidden">
            {[1, 2, 3, 5].map(m => {
              const isActive = activeMult === m;
              return (
@@ -229,7 +231,7 @@ export default function SuperAce() {
            </div>
         )}
 
-        <div className="w-full h-full max-w-md mx-auto bg-[#1b2b36] rounded p-1.5 border-t border-[#3e5361] shadow-xl overflow-hidden flex flex-col">
+        <div className="w-full h-full flex-1 bg-[#1b2b36] rounded p-1.5 border-t border-[#3e5361] shadow-xl overflow-hidden flex flex-col">
            <div className="flex-1 min-h-0 flex gap-[3px] bg-[#101b22] p-[3px] rounded-sm">
              {grid.map((col, cIdx) => (
                <div key={cIdx} className="flex-1 flex flex-col gap-[3px] relative overflow-hidden bg-[#c3c8cf] rounded-sm">

@@ -1,3 +1,5 @@
+import { useGameFullscreen } from '../../hooks/useGameFullscreen';
+import { GameContainer } from "../../components/GameContainer";
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import { ArrowLeft, Menu, Minus, Plus } from 'lucide-react';
@@ -13,6 +15,7 @@ type BetState = {
 };
 
 export default function CrashGame() {
+  useGameFullscreen();
   const { currentUser, updateUserProfile, siteSettings } = useApp();
   
   const currentUserRef = useRef(currentUser);
@@ -375,7 +378,7 @@ export default function CrashGame() {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-[#000000] font-sans overflow-hidden">
+    <div className="fixed inset-0 z-[100] flex flex-col w-full h-full overflow-hidden bg-[#000000] text-white">
       {/* Top Bar */}
       <div className="shrink-0 flex items-center justify-between px-2 py-1.5 bg-[#1b1c1d] border-b border-white/5">
         <div className="flex items-center gap-2">
@@ -446,7 +449,7 @@ export default function CrashGame() {
 
       {/* Bets Area (Side-by-Side Grid) */}
       <div className="shrink-0 bg-[#000000] p-1.5 border-t border-[#1b1c1d] pb-[85px] sm:pb-3">
-        <div className="grid grid-cols-2 gap-1.5 w-full max-w-lg mx-auto">
+        <div className="grid grid-cols-2 gap-1.5 w-full h-full">
           {renderBetPanel(1)}
           {renderBetPanel(2)}
         </div>

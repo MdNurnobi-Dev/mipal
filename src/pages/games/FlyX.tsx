@@ -1,3 +1,4 @@
+import { useGameFullscreen } from '../../hooks/useGameFullscreen';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { 
@@ -51,6 +52,7 @@ const INITIAL_BET_STATE: BetState = {
 };
 
 export default function FlyX() {
+  useGameFullscreen();
   const { currentUser, siteSettings, updateUserProfile } = useApp();
   const { formatCurrency } = useCurrency();
 
@@ -891,7 +893,7 @@ export default function FlyX() {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-[#060b13] text-white font-sans selection:bg-transparent overflow-hidden">
+    <div className="fixed inset-0 z-[100] flex flex-col w-full h-full overflow-hidden bg-[#060b13] text-white font-sans selection:bg-transparent">
       
       {/* 1. TOP CASINO APP BAR */}
       <div className="flex items-center justify-between px-3 py-1.5 bg-[#0a121e] border-b border-[#16253a] shrink-0 z-20 shadow-md">

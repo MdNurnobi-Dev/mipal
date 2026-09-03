@@ -32,10 +32,53 @@ export default function Plan() {
   if (!currentUser) return null;
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h2 className="text-xl font-bold text-slate-800">Investment Plans</h2>
-        <p className="text-slate-500 text-xs mt-1">Grow your earnings passively.</p>
+    <div className="space-y-3">
+      {/* Advanced Premium Header Card */}
+      <div className="relative bg-white rounded-xl p-3.5 border border-slate-200/80 shadow-[0_4px_20px_-6px_rgba(0,0,0,0.05)] overflow-hidden">
+        {/* Abstract Background Grid & Accents */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:12px_12px] pointer-events-none" />
+        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-indigo-500/5 to-transparent rounded-bl-full pointer-events-none" />
+        <div className="absolute -bottom-4 -left-4 w-20 h-20 bg-gradient-to-tr from-blue-500/5 to-transparent rounded-tr-full pointer-events-none" />
+        
+        <div className="relative z-10 flex flex-col gap-3">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center shadow-md shadow-indigo-200/50">
+                <Zap className="w-3.5 h-3.5 text-white fill-white/20" />
+              </div>
+              <div>
+                <h2 className="text-xs font-semibold text-slate-800 tracking-tight">VIP Membership</h2>
+                <p className="text-[9px] text-slate-500 font-medium">Premium Account Status</p>
+              </div>
+            </div>
+            <div className="text-right">
+               {activePlan ? (
+                 <div className="inline-flex items-center gap-1 pl-1 pr-2 py-0.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-full text-[10px] font-medium shadow-sm shadow-emerald-200">
+                   <div className="w-3.5 h-3.5 bg-white/20 rounded-full flex items-center justify-center">
+                     <CheckCircle2 className="w-2.5 h-2.5 text-white" />
+                   </div>
+                   <span className="truncate max-w-[70px]">{activePlan.name}</span>
+                 </div>
+               ) : (
+                 <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-100 text-slate-500 border border-slate-200/80 rounded-full text-[10px] font-medium">
+                   Free User
+                 </div>
+               )}
+            </div>
+          </div>
+
+          <div className="pt-2.5 border-t border-slate-100/80 flex items-center justify-between gap-4">
+             <p className="text-[10px] text-slate-500 leading-relaxed max-w-[65%]">
+               Unlock higher daily limits, exclusive rewards, and priority support by upgrading your tier.
+             </p>
+             {activePlan && (
+                <div className="text-right shrink-0">
+                  <div className="text-[9px] text-slate-400 font-medium uppercase tracking-wider mb-0.5">Daily Limit</div>
+                  <div className="text-xs font-semibold text-indigo-600">{formatCurrency(activePlan.dailyEarningLimit)}</div>
+                </div>
+             )}
+          </div>
+        </div>
       </div>
 
       <div className="flex bg-slate-100 p-1 rounded-lg">
@@ -61,73 +104,84 @@ export default function Plan() {
       )}
 
       {activeTab === 'available' && (
-        <div className="grid gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-1">
           {plans.map((plan) => {
             const isActive = currentUser?.activePlanId === plan.id;
             const isConfirming = confirmId === plan.id;
 
             return (
-              <div key={plan.id} className={`bg-white rounded-xl p-4 border ${isActive ? 'border-indigo-600 ring-1 ring-indigo-600' : 'border-slate-200'} shadow-sm relative overflow-hidden`}>
-                <div className="absolute top-0 right-0 p-3 opacity-5">
-                  <Zap className="w-24 h-24 text-indigo-600" />
-                </div>
+              <div key={plan.id} className={`bg-white rounded-xl p-3 border ${isActive ? 'border-indigo-500 shadow-sm' : 'border-slate-200'} relative overflow-hidden flex flex-col h-full`}>
+                {isActive && (
+                  <div className="absolute top-0 right-0 bg-indigo-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-bl-lg z-20 flex items-center gap-1 uppercase tracking-wider">
+                    <CheckCircle2 className="w-3 h-3" /> Active
+                  </div>
+                )}
                 
-                <div className="flex justify-between items-start mb-1 relative z-10">
-                  <h3 className="text-base font-bold text-slate-800">{plan.name}</h3>
-                  {isActive && (
-                    <span className="bg-indigo-100 text-indigo-700 text-[9px] font-bold px-2 py-1 rounded-full flex items-center gap-1">
-                      <CheckCircle2 className="w-3 h-3" /> Active
-                    </span>
+                <div className="relative z-10 mb-3">
+                  <h3 className="text-sm font-bold text-slate-800">{plan.name}</h3>
+                  <div className="mt-1 flex items-baseline gap-1">
+                    <span className="text-base font-bold text-indigo-600">{formatCurrency(plan.price, 0)}</span>
+                    <span className="text-[10px] font-medium text-slate-500">/ one-time</span>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5 mb-4 text-xs text-slate-600 relative z-10 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-3.5 h-3.5 rounded bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
+                      <Check className="w-2.5 h-2.5 text-emerald-600" />
+                    </div>
+                    <span className="text-[11px]">Daily Limit: <strong className="text-slate-700">{formatCurrency(plan.dailyEarningLimit)}</strong></span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-3.5 h-3.5 rounded bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
+                      <Check className="w-2.5 h-2.5 text-emerald-600" />
+                    </div>
+                    <span className="text-[11px]">Valid for <strong className="text-slate-700">{plan.durationDays} Days</strong></span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-3.5 h-3.5 rounded bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
+                      <Check className="w-2.5 h-2.5 text-emerald-600" />
+                    </div>
+                    <span className="text-[11px]">Potential: <strong className="text-indigo-600">{formatCurrency(plan.dailyEarningLimit * plan.durationDays)}</strong></span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-3.5 h-3.5 rounded bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
+                      <Check className="w-2.5 h-2.5 text-emerald-600" />
+                    </div>
+                    <span className="text-[11px]">Premium Support</span>
+                  </div>
+                </div>
+
+                <div className="mt-auto relative z-10">
+                  {isConfirming ? (
+                    <div className="flex gap-1.5">
+                      <button 
+                        onClick={() => setConfirmId(null)}
+                        className="flex-1 bg-slate-100 text-slate-600 font-semibold py-1.5 text-[11px] rounded hover:bg-slate-200 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button 
+                        onClick={() => handlePurchase(plan.id)}
+                        className="flex-1 bg-indigo-600 text-white font-semibold py-1.5 text-[11px] rounded hover:bg-indigo-700 transition-colors shadow-sm"
+                      >
+                        Confirm Buy
+                      </button>
+                    </div>
+                  ) : (
+                    <button 
+                      onClick={() => setConfirmId(plan.id)}
+                      disabled={isActive}
+                      className={`w-full font-semibold py-1.5 text-[11px] rounded transition-all ${
+                        isActive 
+                          ? 'bg-slate-50 text-slate-400 border border-slate-200 cursor-not-allowed' 
+                          : 'bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-600 hover:text-white hover:border-indigo-600'
+                      }`}
+                    >
+                      {isActive ? 'Current Plan' : 'Select Plan'}
+                    </button>
                   )}
                 </div>
-
-                <div className="flex items-end gap-1 mb-3 relative z-10">
-                  <span className="text-2xl font-black text-indigo-600">{formatCurrency(plan.price, 0)}</span>
-                </div>
-
-                <div className="space-y-2 mb-4 text-[11px] text-slate-600 relative z-10">
-                  <div className="flex justify-between p-1.5 bg-slate-50 rounded">
-                    <span className="font-medium text-slate-500">Daily Earning Limit</span>
-                    <span className="font-bold text-green-600">{formatCurrency(plan.dailyEarningLimit)}</span>
-                  </div>
-                  <div className="flex justify-between p-1.5 bg-slate-50 rounded">
-                    <span className="font-medium text-slate-500">Duration</span>
-                    <span className="font-bold text-slate-800">{plan.durationDays} Days</span>
-                  </div>
-                  <div className="flex justify-between p-1.5 bg-indigo-50 text-indigo-900 rounded font-medium">
-                    <span>Total Potential Return</span>
-                    <span className="font-bold">{formatCurrency(plan.dailyEarningLimit * plan.durationDays)}</span>
-                  </div>
-                </div>
-
-                {isConfirming ? (
-                  <div className="relative z-10 flex gap-2">
-                    <button 
-                      onClick={() => setConfirmId(null)}
-                      className="flex-1 bg-slate-100 text-slate-600 font-bold py-2 text-sm rounded-lg hover:bg-slate-200 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button 
-                      onClick={() => handlePurchase(plan.id)}
-                      className="flex-1 bg-indigo-600 text-white font-bold py-2 text-sm rounded-lg hover:bg-indigo-700 transition-colors shadow-sm shadow-indigo-200"
-                    >
-                      Confirm Buy
-                    </button>
-                  </div>
-                ) : (
-                  <button 
-                    onClick={() => setConfirmId(plan.id)}
-                    disabled={isActive}
-                    className={`relative z-10 w-full font-bold py-2 text-sm rounded-lg transition-colors shadow-sm ${
-                      isActive 
-                        ? 'bg-slate-100 text-slate-400 cursor-not-allowed' 
-                        : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-200'
-                    }`}
-                  >
-                    {isActive ? 'Current Plan' : 'Buy Now'}
-                  </button>
-                )}
               </div>
             );
           })}

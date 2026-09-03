@@ -1,3 +1,4 @@
+import { useGameFullscreen } from '../../hooks/useGameFullscreen';
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useCurrency } from '../../hooks/useCurrency';
@@ -107,6 +108,7 @@ interface CellState {
 }
 
 export default function Mines() {
+  useGameFullscreen();
   const { currentUser, updateUserProfile, siteSettings } = useApp();
   const { formatCurrency } = useCurrency();
 
@@ -330,7 +332,7 @@ export default function Mines() {
   const nextStepProfit = bet * nextStepMult - bet;
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-[#0c131c] text-white font-sans selection:bg-transparent overflow-hidden">
+    <div className="fixed inset-0 z-[100] flex flex-col w-full h-full overflow-hidden bg-[#0c131c] text-white font-sans selection:bg-transparent">
       
       {/* 1. TOP CASINO APP BAR */}
       <div className="flex items-center justify-between px-3 py-1.5 bg-[#121b27] border-b border-[#213143] shrink-0 z-20 shadow-md">
@@ -420,7 +422,7 @@ export default function Mines() {
 
       {/* 3. MAIN SCROLLABLE GAME AREA */}
       <div className="flex-1 min-h-0 w-full overflow-y-auto flex flex-col items-center bg-[#0c131c] px-2 py-2">
-        <div className="w-full max-w-[380px] flex flex-col items-center gap-1.5">
+        <div className="w-full flex-1 flex flex-col items-center gap-1.5">
           
           {/* Live Multiplier & Status Capsule */}
           <div className="w-full flex items-center justify-between px-2.5 py-1 rounded-md bg-[#121b27] border border-[#213143] text-xs shadow-md">

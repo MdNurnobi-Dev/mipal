@@ -1,3 +1,4 @@
+import { useGameFullscreen } from '../../hooks/useGameFullscreen';
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import { ArrowLeft, Settings, RotateCcw, Zap, Wifi, Coins, Volume2, VolumeX, Sparkles, HelpCircle, X } from 'lucide-react';
@@ -336,6 +337,7 @@ const PAYLINE_DEFINITIONS = [
 ];
 
 export default function FortuneGems() {
+  useGameFullscreen();
   const { currentUser, updateUserProfile, siteSettings } = useApp();
 
   const [bet, setBet] = useState(1);
@@ -512,7 +514,7 @@ export default function FortuneGems() {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-[#03151f] font-sans overflow-hidden text-white">
+    <div className="fixed inset-0 z-[100] flex flex-col w-full h-full overflow-hidden bg-[#03151f] font-sans text-white">
       {/* Top Background Shadow */}
       <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-[#1c0808] to-transparent pointer-events-none"></div>
 
@@ -556,7 +558,7 @@ export default function FortuneGems() {
         </div>
 
         {/* Top 4th Multiplier Tracker Capsule (Following Super Ace design) */}
-        <div className="w-full max-w-[280px] mx-auto mt-1.5 bg-gradient-to-b from-[#2a1705] to-[#120902] rounded-full p-1 border-2 border-[#5c3a12] shadow-[0_4px_10px_rgba(0,0,0,0.8)] flex justify-between gap-1 relative overflow-hidden">
+        <div className="w-full mt-1.5 bg-gradient-to-b from-[#2a1705] to-[#120902] rounded-full p-1 border-2 border-[#5c3a12] shadow-[0_4px_10px_rgba(0,0,0,0.8)] flex justify-between gap-1 relative overflow-hidden">
           {MULTIPLIERS.map(m => {
             const isActive = multiplier === m;
             return (
@@ -646,7 +648,7 @@ export default function FortuneGems() {
         )}
 
         {/* Casino Machine Outer Frame */}
-        <div className="w-full h-full max-w-md mx-auto bg-[#1b2b36] rounded p-1.5 border-t border-[#3e5361] shadow-xl overflow-hidden flex flex-col">
+        <div className="w-full h-full flex-1 bg-[#1b2b36] rounded p-1.5 border-t border-[#3e5361] shadow-xl overflow-hidden flex flex-col">
           <div className="flex-1 min-h-0 flex gap-[3px] bg-[#101b22] p-[3px] rounded-sm">
             
             {/* 3x3 Main Symbol Reels */}

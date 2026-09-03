@@ -597,7 +597,7 @@ class GameServerSimulator {
     let totalWin = 0;
     let workingGrid = JSON.parse(JSON.stringify(grid));
 
-    const maxCascades = targetWin ? (winControl === 'high' ? 6 : winControl === 'medium' ? 4 : 2) : 1;
+    const maxCascades = targetWin ? (winControl === 'high' ? 5 : winControl === 'medium' ? 3 : 2) : 1;
 
     for (let cascadeStep = 0; cascadeStep < maxCascades; cascadeStep++) {
       const wins = evaluateWays(workingGrid);
@@ -612,8 +612,8 @@ class GameServerSimulator {
 
       wins.forEach(w => {
         totalWays += w.ways;
-        // Payout scaled down by bet / 30 to prevent massive runway inflation on 3600 ways
-        const lineWin = (w.payoutMult * (bet / 30)) * w.ways * activeMultiplier;
+        // Payout scaled down heavily (bet / 150) to prevent massive runway inflation on 3600 ways
+        const lineWin = (w.payoutMult * (bet / 150)) * w.ways * activeMultiplier;
         stepWin += lineWin;
         w.positions.forEach(p => {
           const key = `${p.col},${p.row}`;

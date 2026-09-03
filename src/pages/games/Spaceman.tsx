@@ -1,3 +1,4 @@
+import { useGameFullscreen } from '../../hooks/useGameFullscreen';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
@@ -150,6 +151,7 @@ function useCleanup({
 }
 
 export default function Spaceman() {
+  useGameFullscreen();
   const navigate = useNavigate();
   const { currentUser, siteSettings, updateUserProfile } = useApp();
   const { formatCurrency } = useCurrency();
@@ -893,10 +895,10 @@ export default function Spaceman() {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-[#000000] text-slate-200 select-none font-sans overflow-hidden">
+    <div className="fixed inset-0 z-[100] flex flex-col w-full h-full overflow-hidden bg-[#000000] text-slate-200 select-none font-sans">
       {/* Top Header Bar - Clean Aviator Dark Style with Zero Overflow */}
       <header className="shrink-0 bg-[#181a20] border-b border-white/10 px-2 py-1 relative z-40">
-        <div className="max-w-4xl mx-auto flex items-center justify-between gap-1.5">
+        <div className="w-full flex items-center justify-between gap-1.5">
           {/* Left: Back & Brand */}
           <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
             <Link
@@ -961,7 +963,7 @@ export default function Spaceman() {
       </header>
 
       {/* Main Container */}
-      <main className="flex-1 w-full max-w-4xl mx-auto flex flex-col overflow-y-auto no-scrollbar pb-2 relative z-10">
+      <main className="flex-1 w-full flex flex-col overflow-y-auto no-scrollbar pb-2 relative z-10">
         <div className="px-2 pt-2 space-y-2 flex-1 flex flex-col">
           {/* Game Status Check: If disabled in Admin Panel */}
         {!isGameActive && (
