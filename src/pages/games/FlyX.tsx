@@ -70,12 +70,12 @@ export default function FlyX() {
   );
   const [isGameActive, setIsGameActive] = useState<boolean>(
     siteSettings?.gameStates && siteSettings.gameStates['fly_x'] !== undefined
-      ? !siteSettings.gameStates['fly_x']
+      ? !!siteSettings.gameStates['fly_x']
       : true
   );
   const isGameActiveRef = useRef<boolean>(
     siteSettings?.gameStates && siteSettings.gameStates['fly_x'] !== undefined
-      ? !siteSettings.gameStates['fly_x']
+      ? !!siteSettings.gameStates['fly_x']
       : true
   );
 
@@ -87,7 +87,7 @@ export default function FlyX() {
       winControlRef.current = newWin;
     }
     if (siteSettings?.gameStates && siteSettings.gameStates['fly_x'] !== undefined) {
-      const active = !siteSettings.gameStates['fly_x'];
+      const active = !!siteSettings.gameStates['fly_x'];
       setIsGameActive(active);
       isGameActiveRef.current = active;
     }
@@ -104,7 +104,7 @@ export default function FlyX() {
           winControlRef.current = newWin;
         }
         if (val.gameStates && val.gameStates['fly_x'] !== undefined) {
-          const active = !val.gameStates['fly_x'];
+          const active = !!val.gameStates['fly_x'];
           setIsGameActive(active);
           isGameActiveRef.current = active;
         }
@@ -321,6 +321,11 @@ export default function FlyX() {
     currentUserRef.current = currentUser;
   }, [currentUser]);
 
+  const updateUserProfileRef = useRef(updateUserProfile);
+  useEffect(() => {
+    updateUserProfileRef.current = updateUserProfile;
+  }, [updateUserProfile]);
+
   // Generate randomized community bets for realism
   const generateSimulatedBets = () => {
     const names = ['Karim_07', 'Rahim99', 'NeonFlyer', 'StarGazer', 'CryptoKing', 'CyberPro', 'FlyAce', 'RocketMan', 'Shanto', 'SakibX'];
@@ -409,21 +414,26 @@ export default function FlyX() {
     if (!isMountedRef.current || gameStateRef.current !== 'flying') return;
     const currentMult = multiplierRef.current;
     const setter = deckNum === 1 ? setBet1 : setBet2;
-    const currentBet = deckNum === 1 ? bet1Ref.current : bet2Ref.current;
+    const currentBetRef = deckNum === 1 ? bet1Ref : bet2Ref;
+    const currentBet = currentBetRef.current;
 
     if (!currentBet.isPlaced || currentBet.cashedOutAt !== null) return;
 
+    // Immediately mark cashedOutAt synchronously on ref to prevent multiple triggers in flight loop
     const winAmount = +(currentBet.amount * currentMult).toFixed(2);
+    currentBetRef.current.cashedOutAt = currentMult;
+    currentBetRef.current.winAmount = winAmount;
+
     setter(prev => ({
       ...prev,
       cashedOutAt: currentMult,
       winAmount,
     }));
 
-    // Update user balance
-    if (currentUser) {
-      updateUserProfile(currentUser.id, {
-        balance: +(currentUser.balance + winAmount).toFixed(2),
+    // Update user balance safely without closure dependencies
+    if (currentUserRef.current) {
+      updateUserProfileRef.current(currentUserRef.current.id, {
+        balance: +(currentUserRef.current.balance + winAmount).toFixed(2),
       });
     }
 
@@ -442,8 +452,8 @@ export default function FlyX() {
     setRecentWinners(prev => [
       {
         id: `my_win_${Date.now()}_${deckNum}`,
-        user: currentUser?.name ? (currentUser.name.length > 8 ? currentUser.name.substring(0, 7) + '..' : currentUser.name) : 'You',
-        avatarSeed: currentUser?.name || 'player',
+        user: currentUserRef.current?.name ? (currentUserRef.current.name.length > 8 ? currentUserRef.current.name.substring(0, 7) + '..' : currentUserRef.current.name) : 'You',
+        avatarSeed: currentUserRef.current?.name || 'player',
         multiplier: currentMult,
         bet: currentBet.amount,
         win: winAmount,
@@ -455,7 +465,7 @@ export default function FlyX() {
     if (isMountedRef.current) {
       audioSystem.playFlyXCashout();
     }
-  }, [currentUser, updateUserProfile]);
+  }, []);
 
   // Start Flight Phase
   const startFlightPhase = useCallback(() => {
@@ -576,6 +586,10 @@ export default function FlyX() {
       ]);
     }
 
+    // CRITICAL FIX: Reset active bets so they don't carry over as free bets in the next round
+    setBet1(prev => ({ ...prev, isPlaced: false }));
+    setBet2(prev => ({ ...prev, isPlaced: false }));
+
     if (crashTimeoutRef.current) {
       clearTimeout(crashTimeoutRef.current);
     }
@@ -634,7 +648,7 @@ export default function FlyX() {
       if (b2.isPlaced) refund += b2.amount;
       if (b2.isQueuedForNext) refund += b2.amount;
       if (refund > 0 && user) {
-        updateUserProfile(user.id, {
+        updateUserProfileRef.current(user.id, {
           balance: +(user.balance + refund).toFixed(2),
         });
       }
@@ -664,7 +678,7 @@ export default function FlyX() {
         ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
       }
     }
-  }, [updateUserProfile]);
+  }, []);
 
   // Initial Game Start and Lifecycle cleanup
   useEffect(() => {
@@ -826,31 +840,32 @@ export default function FlyX() {
     const currentBet = deckNum === 1 ? bet1 : bet2;
     const setter = deckNum === 1 ? setBet1 : setBet2;
 
-    if (!currentUser) return;
+    const user = currentUserRef.current;
+    if (!user) return;
 
     if (currentBet.isPlaced || currentBet.isQueuedForNext) {
       // Cancel bet & refund
       if (gameState === 'waiting' && currentBet.isPlaced) {
-        updateUserProfile(currentUser.id, {
-          balance: +(currentUser.balance + currentBet.amount).toFixed(2),
+        updateUserProfileRef.current(user.id, {
+          balance: +(user.balance + currentBet.amount).toFixed(2),
         });
         setter(prev => ({ ...prev, isPlaced: false, isQueuedForNext: false }));
       } else if (currentBet.isQueuedForNext) {
-        updateUserProfile(currentUser.id, {
-          balance: +(currentUser.balance + currentBet.amount).toFixed(2),
+        updateUserProfileRef.current(user.id, {
+          balance: +(user.balance + currentBet.amount).toFixed(2),
         });
         setter(prev => ({ ...prev, isQueuedForNext: false }));
       }
     } else {
       // Place bet
-      if (currentUser.balance < currentBet.amount) {
+      if (user.balance < currentBet.amount) {
         alert('Insufficient balance to place bet');
         return;
       }
 
       // Deduct balance immediately
-      updateUserProfile(currentUser.id, {
-        balance: +(currentUser.balance - currentBet.amount).toFixed(2),
+      updateUserProfileRef.current(user.id, {
+        balance: +(user.balance - currentBet.amount).toFixed(2),
       });
 
       if (gameState === 'waiting') {
@@ -1174,7 +1189,7 @@ export default function FlyX() {
               onToggleBet={() => handleToggleBet(1)}
               onCashout={() => handleCashout(1)}
               onModifyBet={(act) => modifyBet(1, act)}
-              onUpdateAutoCashout={(enabled, mult) => setBet1(prev => ({ ...prev, autoCashoutEnabled: enabled, autoCashoutMult: mult }))}
+              onUpdateAutoCashout={(enabled, mult) => setBet1(prev => (prev.isPlaced || prev.isQueuedForNext) ? prev : { ...prev, autoCashoutEnabled: enabled, autoCashoutMult: mult })}
               formatCurrency={formatCurrency}
             />
           )}
@@ -1189,7 +1204,7 @@ export default function FlyX() {
               onToggleBet={() => handleToggleBet(2)}
               onCashout={() => handleCashout(2)}
               onModifyBet={(act) => modifyBet(2, act)}
-              onUpdateAutoCashout={(enabled, mult) => setBet2(prev => ({ ...prev, autoCashoutEnabled: enabled, autoCashoutMult: mult }))}
+              onUpdateAutoCashout={(enabled, mult) => setBet2(prev => (prev.isPlaced || prev.isQueuedForNext) ? prev : { ...prev, autoCashoutEnabled: enabled, autoCashoutMult: mult })}
               formatCurrency={formatCurrency}
             />
           )}
@@ -1329,11 +1344,11 @@ function BetPanel({
             <input 
               type="checkbox"
               checked={betState.autoCashoutEnabled}
+              disabled={betState.isPlaced || betState.isQueuedForNext}
               onChange={(e) => onUpdateAutoCashout(e.target.checked, betState.autoCashoutMult)}
-              className="rounded accent-cyan-500 w-3 h-3 cursor-pointer"
+              className="rounded accent-cyan-500 w-3 h-3 cursor-pointer disabled:opacity-50"
             />
           </label>
-
           {betState.autoCashoutEnabled && (
             <div className="flex items-center bg-[#070d16] border border-cyan-500/40 px-1 py-0.5 rounded text-[10px]">
               <input 
@@ -1341,9 +1356,10 @@ function BetPanel({
                 step="0.1"
                 min="1.1"
                 max="100"
+                disabled={betState.isPlaced || betState.isQueuedForNext}
                 value={betState.autoCashoutMult}
                 onChange={(e) => onUpdateAutoCashout(true, Math.max(1.1, Number(e.target.value)))}
-                className="w-8 bg-transparent text-cyan-300 font-black text-right outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                className="w-8 bg-transparent text-cyan-300 font-black text-right outline-none disabled:opacity-50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
               <span className="text-cyan-400 font-bold ml-0.5">x</span>
             </div>

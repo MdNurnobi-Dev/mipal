@@ -409,6 +409,282 @@ class GameServerSimulator {
       multipliersTable
     };
   }
+
+  // --------------------------------------------------------------------------
+  // WILD BOUNTY SHOWDOWN MATH & CASCADE ENGINE (3,600 WAYS)
+  // --------------------------------------------------------------------------
+  public async spinWildBounty(
+    bet: number,
+    winControl: WinControlLevel = 'medium',
+    isFreeSpins: boolean = false
+  ): Promise<{
+    success: boolean;
+    initialGrid: { symbol: string; isGold: boolean; isWild: boolean }[][];
+    isWin: boolean;
+    isFreeSpinsTriggered: boolean;
+    scatterCount: number;
+    cascades: {
+      grid: { symbol: string; isGold: boolean; isWild: boolean }[][];
+      winningPositions: { col: number; row: number }[];
+      waysCount: number;
+      matchedSymbol: string;
+      stepWin: number;
+      multiplier: number;
+    }[];
+    totalWin: number;
+    finalMultiplier: number;
+  }> {
+    const ROW_COUNTS = [3, 4, 5, 5, 4, 3];
+    const REGULAR_SYMBOLS = ['OUTLAW', 'GOLD', 'WHISKEY', 'HAT', 'A', 'K', 'Q', 'J'];
+    const PAYOUT_TABLE: Record<string, number[]> = {
+      OUTLAW:  [0, 0, 10, 20, 30, 50],
+      GOLD:    [0, 0, 8,  15, 20, 30],
+      WHISKEY: [0, 0, 6,  10, 15, 20],
+      HAT:     [0, 0, 5,  8,  12, 15],
+      A:       [0, 0, 3,  5,  8,  10],
+      K:       [0, 0, 2,  4,  6,  8],
+      Q:       [0, 0, 1.5, 3, 5,  6],
+      J:       [0, 0, 1,   2, 3,  4],
+    };
+
+    const rand = Math.random();
+    let targetWin = false;
+    let targetScatters = false;
+
+    if (winControl === 'zero') {
+      targetWin = false;
+      targetScatters = false;
+    } else if (winControl === 'low') {
+      // Very strict 8% win rate
+      targetWin = rand < 0.08;
+      targetScatters = rand < 0.005;
+    } else if (winControl === 'high') {
+      // 30% win rate
+      targetWin = rand < 0.30;
+      targetScatters = rand < 0.05;
+    } else {
+      // medium: ~18% win rate
+      targetWin = rand < 0.18;
+      targetScatters = rand < 0.015;
+    }
+
+    if (isFreeSpins) {
+      targetWin = Math.random() < 0.45; // Free spins are exciting, but toned down from 65%
+    }
+
+    // Generate Initial Grid
+    const grid: { symbol: string; isGold: boolean; isWild: boolean }[][] = [];
+    for (let c = 0; c < 6; c++) {
+      const colRows = ROW_COUNTS[c];
+      const col: { symbol: string; isGold: boolean; isWild: boolean }[] = [];
+      for (let r = 0; r < colRows; r++) {
+        const sym = REGULAR_SYMBOLS[Math.floor(Math.random() * REGULAR_SYMBOLS.length)];
+        const isGold = (c >= 1 && c <= 4) && Math.random() < 0.12;
+        col.push({ symbol: sym, isGold, isWild: false });
+      }
+      grid.push(col);
+    }
+
+    // Place Scatters if triggered
+    let scatterCount = 0;
+    if (targetScatters && !isFreeSpins) {
+      scatterCount = 3 + (Math.random() < 0.2 ? 1 : 0);
+      const chosenCols = [0, 1, 2, 3, 4, 5].sort(() => 0.5 - Math.random()).slice(0, scatterCount);
+      chosenCols.forEach(colIdx => {
+        const rowIdx = Math.floor(Math.random() * ROW_COUNTS[colIdx]);
+        grid[colIdx][rowIdx] = { symbol: 'SCATTER', isGold: false, isWild: false };
+      });
+    } else if (Math.random() < 0.20) {
+      // Teaser 1 or 2 scatters
+      const teasers = Math.random() < 0.7 ? 1 : 2;
+      scatterCount = teasers;
+      const chosenCols = [0, 1, 2, 3, 4, 5].sort(() => 0.5 - Math.random()).slice(0, teasers);
+      chosenCols.forEach(colIdx => {
+        const rowIdx = Math.floor(Math.random() * ROW_COUNTS[colIdx]);
+        grid[colIdx][rowIdx] = { symbol: 'SCATTER', isGold: false, isWild: false };
+      });
+    }
+
+    // Helper to evaluate ways to win
+    const evaluateWays = (currentGrid: typeof grid) => {
+      const wins: {
+        symbol: string;
+        consecutiveReels: number;
+        positions: { col: number; row: number }[];
+        ways: number;
+        payoutMult: number;
+      }[] = [];
+
+      for (const sym of REGULAR_SYMBOLS) {
+        let reelMatches: { col: number; rows: number[] }[] = [];
+
+        for (let c = 0; c < 6; c++) {
+          const matchedRows: number[] = [];
+          for (let r = 0; r < ROW_COUNTS[c]; r++) {
+            const cell = currentGrid[c][r];
+            if (cell.symbol === sym || cell.symbol === 'WILD' || cell.isWild) {
+              matchedRows.push(r);
+            }
+          }
+          if (matchedRows.length > 0) {
+            reelMatches.push({ col: c, rows: matchedRows });
+          } else {
+            break; // must be consecutive from reel 0
+          }
+        }
+
+        if (reelMatches.length >= 3) {
+          const consecutiveReels = reelMatches.length;
+          let ways = 1;
+          const positions: { col: number; row: number }[] = [];
+          reelMatches.forEach(rm => {
+            ways *= rm.rows.length;
+            rm.rows.forEach(r => positions.push({ col: rm.col, row: r }));
+          });
+
+          // Payout table scaled down slightly to manage huge multi-way bursts
+          const table = PAYOUT_TABLE[sym] || [0, 0, 1, 2, 3, 4];
+          const payoutMult = table[consecutiveReels - 1] || 1;
+
+          wins.push({
+            symbol: sym,
+            consecutiveReels,
+            positions,
+            ways,
+            payoutMult
+          });
+        }
+      }
+
+      return wins;
+    };
+
+    // If targetWin is desired, force match on reels 0, 1, 2, 3
+    if (targetWin) {
+      const matchSym = REGULAR_SYMBOLS[Math.floor(Math.random() * (REGULAR_SYMBOLS.length - 2))]; // Prefer medium-high
+      const matchLength = Math.random() < 0.25 ? 5 : Math.random() < 0.5 ? 4 : 3;
+      for (let c = 0; c < matchLength; c++) {
+        const r = Math.floor(Math.random() * ROW_COUNTS[c]);
+        grid[c][r] = {
+          symbol: matchSym,
+          isGold: c >= 1 && c <= 4 && Math.random() < 0.3,
+          isWild: false
+        };
+      }
+    } else {
+      // Actively prevent accidental natural wins when targetWin is false
+      // by breaking any potential chains in the first 3 reels.
+      const offsets = [0, 3, 6];
+      for (let c = 0; c < 3; c++) {
+        for (let r = 0; r < ROW_COUNTS[c]; r++) {
+          grid[c][r].symbol = REGULAR_SYMBOLS[(offsets[c] + r) % REGULAR_SYMBOLS.length];
+          grid[c][r].isWild = false;
+        }
+      }
+    }
+
+    // Execute Cascades Simulation
+    const cascades: {
+      grid: typeof grid;
+      winningPositions: { col: number; row: number }[];
+      waysCount: number;
+      matchedSymbol: string;
+      stepWin: number;
+      multiplier: number;
+    }[] = [];
+
+    let activeMultiplier = isFreeSpins ? 8 : 1;
+    let totalWin = 0;
+    let workingGrid = JSON.parse(JSON.stringify(grid));
+
+    const maxCascades = targetWin ? (winControl === 'high' ? 6 : winControl === 'medium' ? 4 : 2) : 1;
+
+    for (let cascadeStep = 0; cascadeStep < maxCascades; cascadeStep++) {
+      const wins = evaluateWays(workingGrid);
+      if (wins.length === 0) break;
+
+      // Aggregate winning positions & payouts
+      const winningPositionsSet = new Set<string>();
+      const winningPositions: { col: number; row: number }[] = [];
+      let stepWin = 0;
+      let totalWays = 0;
+      let primarySym = wins[0].symbol;
+
+      wins.forEach(w => {
+        totalWays += w.ways;
+        // Payout scaled down by bet / 30 to prevent massive runway inflation on 3600 ways
+        const lineWin = (w.payoutMult * (bet / 30)) * w.ways * activeMultiplier;
+        stepWin += lineWin;
+        w.positions.forEach(p => {
+          const key = `${p.col},${p.row}`;
+          if (!winningPositionsSet.has(key)) {
+            winningPositionsSet.add(key);
+            winningPositions.push(p);
+          }
+        });
+      });
+
+      totalWin += stepWin;
+
+      cascades.push({
+        grid: JSON.parse(JSON.stringify(workingGrid)),
+        winningPositions,
+        waysCount: totalWays,
+        matchedSymbol: primarySym,
+        stepWin: parseFloat(stepWin.toFixed(2)),
+        multiplier: activeMultiplier
+      });
+
+      // Prepare Next Cascade: Turn winning Gold into WILD, clear other wins, drop new symbols
+      const nextGrid: typeof grid = [];
+      for (let c = 0; c < 6; c++) {
+        const remainingCells: { symbol: string; isGold: boolean; isWild: boolean }[] = [];
+        for (let r = 0; r < ROW_COUNTS[c]; r++) {
+          const isWinning = winningPositionsSet.has(`${c},${r}`);
+          const cell = workingGrid[c][r];
+          if (isWinning) {
+            if (cell.isGold) {
+              // Transforms into Wild!
+              remainingCells.push({ symbol: 'WILD', isGold: false, isWild: true });
+            }
+            // Non-gold winning symbols explode and are removed
+          } else {
+            remainingCells.push(cell);
+          }
+        }
+
+        // Fill top with new symbols
+        while (remainingCells.length < ROW_COUNTS[c]) {
+          let newSym = REGULAR_SYMBOLS[Math.floor(Math.random() * REGULAR_SYMBOLS.length)];
+          
+          // Artificial choking to prevent infinite cascades
+          if (cascadeStep >= maxCascades - 2) {
+             const safeOffsets = [0, 3, 6, 1, 4, 7];
+             newSym = REGULAR_SYMBOLS[(safeOffsets[c] + remainingCells.length) % REGULAR_SYMBOLS.length];
+          }
+
+          const newGold = (c >= 1 && c <= 4) && Math.random() < 0.10;
+          remainingCells.unshift({ symbol: newSym, isGold: newGold, isWild: false });
+        }
+        nextGrid.push(remainingCells);
+      }
+
+      workingGrid = nextGrid;
+      // Double multiplier on each consecutive cascade up to 1024x
+      activeMultiplier = Math.min(1024, activeMultiplier * 2);
+    }
+
+    return {
+      success: true,
+      initialGrid: grid,
+      isWin: totalWin > 0,
+      isFreeSpinsTriggered: scatterCount >= 3,
+      scatterCount,
+      cascades,
+      totalWin: parseFloat(totalWin.toFixed(2)),
+      finalMultiplier: cascades.length > 0 ? cascades[cascades.length - 1].multiplier : activeMultiplier
+    };
+  }
 }
 
 export const gameApi = new GameServerSimulator();

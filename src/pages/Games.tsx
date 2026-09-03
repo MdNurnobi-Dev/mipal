@@ -7,6 +7,7 @@ import { FortuneGemsLobbyThumbnail } from '../components/FortuneGemsLobbyThumbna
 import { MinesLobbyThumbnail } from '../components/MinesLobbyThumbnail';
 import { FlyXLobbyThumbnail } from '../components/FlyXLobbyThumbnail';
 import { SpacemanLobbyThumbnail } from '../components/SpacemanLobbyThumbnail';
+import { WildBountyLobbyThumbnail } from '../components/WildBountyLobbyThumbnail';
 
 export default function Games() {
   const { currentUser, siteSettings } = useApp();
@@ -109,9 +110,10 @@ export default function Games() {
       provider: 'PG SOFT',
       image: 'bg-gradient-to-br from-amber-700 to-amber-900',
       icon: Target,
-      path: '#',
+      path: '/games/slots/wild-bounty',
+      tag: 'HOT',
       category: 'Slots',
-      active: siteSettings?.gameStates ? !!siteSettings.gameStates['wild_bounty'] : false
+      active: siteSettings?.gameStates && siteSettings.gameStates['wild_bounty'] !== undefined ? !!siteSettings.gameStates['wild_bounty'] : true
     }
   ];
 
@@ -264,6 +266,8 @@ export default function Games() {
                   <FlyXLobbyThumbnail className="w-full h-full" />
                 ) : game.id === 'spaceman' ? (
                   <SpacemanLobbyThumbnail className="w-full h-full" isActive={game.active} />
+                ) : game.id === 'wild_bounty' ? (
+                  <WildBountyLobbyThumbnail className="w-full h-full" isActive={game.active} />
                 ) : (
                   <>
                     {game.imageUrl && (

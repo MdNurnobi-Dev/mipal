@@ -46,29 +46,7 @@ interface BetHistoryItem {
   timestamp: string;
 }
 
-interface SimulatedPlayer {
-  id: string;
-  user: string;
-  avatarSeed: string;
-  bet: number;
-  cashoutTarget: number;
-  cashedOutAt?: number;
-  cashout50At?: number;
-  winAmount?: number;
-}
-
 const INITIAL_BET = 10;
-
-// High-volume realistic player name generator for authentic casino experience
-const BASE_NAMES = [
-  'AstroHero', 'LunaStar', 'RocketMan99', 'CosmicQueen', 'OrbitKing',
-  'Karim_Pro', 'SakibX', 'StarGazer', 'NeonPilot', 'HyperDrive',
-  'ApexFlyer', 'StellarOne', 'Tariq_VIP', 'Nadim_77', 'RanaBoss',
-  'CryptoKing', 'LuckyRider', 'Tanvir_99', 'SpacexPro', 'GalaxyAce',
-  'Shanto_77', 'Mahin_Win', 'Zahid_007', 'Rifat_King', 'Sohan_Pro',
-  'FlyMaster', 'SpeedRunner', 'CosmoPilot', 'AetherX', 'NovaStrike',
-  'QuantumBet', 'OrbitalPulse', 'SuperFly99', 'StarLord_BD', 'SkyRocket'
-];
 
 // Custom useCleanup Hook for Spaceman to purge game loops, timeouts, animation frames, and audio
 interface UseSpacemanCleanupOptions {
@@ -83,7 +61,7 @@ interface UseSpacemanCleanupOptions {
   setMultiplier: React.Dispatch<React.SetStateAction<number>>;
   betStateRef: React.MutableRefObject<any>;
   currentUserRef: React.MutableRefObject<any>;
-  updateUserProfile: (userId: string, data: any) => Promise<any> | void;
+  updateUserProfile: React.MutableRefObject<(userId: string, data: any) => Promise<any> | void>;
 }
 
 function useCleanup({
@@ -141,7 +119,7 @@ function useCleanup({
       if (bState?.isPlaced) refund += bState.amount;
       if (bState?.isQueuedForNext) refund += bState.amount;
       if (refund > 0 && user) {
-        updateUserProfile(user.id, {
+        updateUserProfile.current(user.id, {
           balance: +(user.balance + refund).toFixed(2),
         });
       }
@@ -182,6 +160,11 @@ export default function Spaceman() {
   useEffect(() => {
     currentUserRef.current = currentUser;
   }, [currentUser]);
+
+  const updateUserProfileRef = useRef(updateUserProfile);
+  useEffect(() => {
+    updateUserProfileRef.current = updateUserProfile;
+  }, [updateUserProfile]);
 
   // Real-time Admin Sync States & Refs
   const [liveWinControl, setLiveWinControl] = useState<string>(
@@ -367,15 +350,16 @@ export default function Spaceman() {
   // User My Bets History
   const [myBets, setMyBets] = useState<BetHistoryItem[]>([]);
 
-  // Community Live Bets List (High density list)
-  const [liveBets, setLiveBets] = useState<SimulatedPlayer[]>([]);
-
-  // UI Modals & Active Tabs
-  const [activeTab, setActiveTab] = useState<'all' | 'my' | 'top'>('all');
+  // UI Modals
   const [showRulesModal, setShowRulesModal] = useState<boolean>(false);
   const [showFairModal, setShowFairModal] = useState<boolean>(false);
   const [selectedHistoryItem, setSelectedHistoryItem] = useState<MultiplierHistoryItem | null>(null);
   const [isSoundMuted, setIsSoundMuted] = useState<boolean>(false);
+  
+  const isSoundMutedRef = useRef(isSoundMuted);
+  useEffect(() => {
+    isSoundMutedRef.current = isSoundMuted;
+  }, [isSoundMuted]);
 
   // Timers and Animation Refs
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -395,27 +379,6 @@ export default function Spaceman() {
     { id: 't6', user: 'AstroBoss_BD', mult: 88.50, bet: 1200, win: 106200, time: '03:40 PM' },
   ];
 
-  // Helper to generate simulated community bets (300-3000 volume representation)
-  const generateSimulatedBets = (): SimulatedPlayer[] => {
-    const count = 35;
-    const stakes = [10, 20, 50, 100, 200, 300, 500, 1000, 1500, 2000, 5000];
-    
-    // Pick random names from pool
-    const shuffled = [...BASE_NAMES].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, count).map((name, i) => {
-      const betVal = stakes[Math.floor(Math.random() * stakes.length)];
-      // Random cashout target between 1.15x and 18.00x
-      const randTarget = +(1.15 + Math.random() * (Math.random() < 0.7 ? 2.5 : 15.0)).toFixed(2);
-      return {
-        id: `sim_${Date.now()}_${i}`,
-        user: name,
-        avatarSeed: name.toLowerCase(),
-        bet: betVal,
-        cashoutTarget: randTarget,
-      };
-    });
-  };
-
   // Real-Time Synchronized Crash Algorithm
   const calculateCrashMultiplier = useCallback((): number => {
     const winControl = winControlRef.current || 'low';
@@ -433,34 +396,46 @@ export default function Spaceman() {
           betStateRef.current.autoCashout50Enabled ? betStateRef.current.autoCashout50Mult : 9999
         );
 
-        if (activeTarget < 9999 && activeTarget > 1.20 && Math.random() < 0.88) {
+        // Very high chance (92%) to crash before the user's auto cashout target or at very low levels
+        if (activeTarget < 9999 && activeTarget > 1.20 && Math.random() < 0.92) {
           return +(1.01 + Math.random() * (activeTarget - 1.05)).toFixed(2);
         }
 
-        if (rand < 0.40) return +(1.00 + Math.random() * 0.15).toFixed(2);
-        if (rand < 0.75) return +(1.15 + Math.random() * 0.40).toFixed(2);
-        if (rand < 0.92) return +(1.55 + Math.random() * 0.60).toFixed(2);
-        return +(2.15 + Math.random() * 1.50).toFixed(2);
+        // Extreme low distribution: ~75% crash below 1.10
+        if (rand < 0.75) return +(1.00 + Math.random() * 0.10).toFixed(2);
+        if (rand < 0.90) return +(1.10 + Math.random() * 0.20).toFixed(2);
+        if (rand < 0.97) return +(1.30 + Math.random() * 0.40).toFixed(2);
+        return +(1.70 + Math.random() * 0.50).toFixed(2);
       } else {
-        if (rand < 0.25) return +(1.05 + Math.random() * 0.5).toFixed(2);
-        if (rand < 0.60) return +(1.60 + Math.random() * 1.8).toFixed(2);
-        if (rand < 0.85) return +(3.50 + Math.random() * 8.0).toFixed(2);
-        if (rand < 0.97) return +(12.00 + Math.random() * 35.0).toFixed(2);
-        return +(50.00 + Math.random() * 450.0).toFixed(2);
+        // Without active bet, still keep it low but occasionally let it fly
+        if (rand < 0.50) return +(1.01 + Math.random() * 0.3).toFixed(2);
+        if (rand < 0.85) return +(1.31 + Math.random() * 1.5).toFixed(2);
+        if (rand < 0.95) return +(2.81 + Math.random() * 4.0).toFixed(2);
+        return +(7.00 + Math.random() * 10.0).toFixed(2);
       }
     }
 
     if (winControl === 'high') {
       if (rand < 0.10) return +(1.10 + Math.random() * 0.4).toFixed(2);
-      if (rand < 0.50) return +(1.80 + Math.random() * 3.2).toFixed(2);
-      if (rand < 0.85) return +(4.00 + Math.random() * 15.0).toFixed(2);
-      return +(20.00 + Math.random() * 120.0).toFixed(2);
+      if (rand < 0.40) return +(1.50 + Math.random() * 1.5).toFixed(2);
+      if (rand < 0.75) return +(3.00 + Math.random() * 5.0).toFixed(2);
+      if (rand < 0.95) return +(8.00 + Math.random() * 15.0).toFixed(2);
+      return +(25.00 + Math.random() * 50.0).toFixed(2);
     }
 
-    // Default 'medium' standard Pragmatic Play Spaceman RTP distribution (~96.5%)
-    if (rand < 0.05) return 1.00;
-    const raw = 0.965 / (1 - rand * 0.95);
-    return Math.min(5000.0, Math.max(1.01, +raw.toFixed(2)));
+    // Default 'medium' distribution (~18-20% win chance for user when active)
+    if (hasActiveUserBet) {
+      if (rand < 0.30) return +(1.01 + Math.random() * 0.2).toFixed(2);
+      if (rand < 0.70) return +(1.21 + Math.random() * 0.6).toFixed(2);
+      if (rand < 0.90) return +(1.81 + Math.random() * 1.0).toFixed(2);
+      return +(2.81 + Math.random() * 2.0).toFixed(2);
+    } else {
+      if (rand < 0.20) return +(1.01 + Math.random() * 0.4).toFixed(2);
+      if (rand < 0.60) return +(1.41 + Math.random() * 1.5).toFixed(2);
+      if (rand < 0.85) return +(2.91 + Math.random() * 4.0).toFixed(2);
+      if (rand < 0.95) return +(7.00 + Math.random() * 10.0).toFixed(2);
+      return +(17.00 + Math.random() * 30.0).toFixed(2);
+    }
   }, []);
 
   // Handle 50% Cashout (Signature Spaceman Feature)
@@ -471,22 +446,25 @@ export default function Spaceman() {
 
     if (!bState.isPlaced || bState.cashed50At !== null || bState.cashedFullAt !== null) return;
 
+    // Immediately mark cashed50At synchronously in ref to prevent multiple trigger in animation loop
+    betStateRef.current.cashed50At = currentMult;
     const halfStake = bState.amount / 2;
     const win = +(halfStake * currentMult).toFixed(2);
+    betStateRef.current.win50Amount = win;
 
     setCashed50At(currentMult);
     setWin50Amount(win);
 
     if (currentUserRef.current) {
-      updateUserProfile(currentUserRef.current.id, {
+      updateUserProfileRef.current(currentUserRef.current.id, {
         balance: +(currentUserRef.current.balance + win).toFixed(2),
       });
     }
 
-    if (!isSoundMuted && isMountedRef.current) {
+    if (!isSoundMutedRef.current && isMountedRef.current) {
       audioSystem.playSpacemanCashout50();
     }
-  }, [updateUserProfile, isSoundMuted]);
+  }, []);
 
   // Handle Full Cashout
   const handleCashoutFull = useCallback(() => {
@@ -496,20 +474,23 @@ export default function Spaceman() {
 
     if (!bState.isPlaced || bState.cashedFullAt !== null) return;
 
+    // Immediately mark cashedFullAt synchronously in ref to prevent multiple trigger in animation loop
+    betStateRef.current.cashedFullAt = currentMult;
     const remainingStake = bState.cashed50At !== null ? bState.amount / 2 : bState.amount;
     const win = +(remainingStake * currentMult).toFixed(2);
     const totalWinnings = +(win + bState.win50Amount).toFixed(2);
+    betStateRef.current.winFullAmount = win;
 
     setCashedFullAt(currentMult);
     setWinFullAmount(win);
 
     if (currentUserRef.current) {
-      updateUserProfile(currentUserRef.current.id, {
+      updateUserProfileRef.current(currentUserRef.current.id, {
         balance: +(currentUserRef.current.balance + win).toFixed(2),
       });
     }
 
-    if (!isSoundMuted && isMountedRef.current) {
+    if (!isSoundMutedRef.current && isMountedRef.current) {
       audioSystem.playSpacemanCashout();
     }
 
@@ -529,7 +510,7 @@ export default function Spaceman() {
       },
       ...prev.slice(0, 19),
     ]);
-  }, [updateUserProfile, isSoundMuted]);
+  }, []);
 
   // Start Flight Phase
   const startFlightPhase = useCallback(() => {
@@ -558,33 +539,20 @@ export default function Spaceman() {
     setWin50Amount(0);
     setWinFullAmount(0);
 
-    if (!isSoundMuted && isMountedRef.current) {
+    if (!isSoundMutedRef.current && isMountedRef.current) {
       audioSystem.playSpacemanLiftoff();
     }
 
-    // Flight multiplier acceleration loop
+    // Flight multiplier acceleration loop (Slower Aviator Curve)
     const flightLoop = (now: number) => {
       if (!isMountedRef.current || gameStateRef.current !== 'flying') return;
 
       const elapsed = (now - flightStartTimeRef.current) / 1000;
-      const currentMult = +(Math.pow(1.06, elapsed * 10) * (1 + elapsed * 0.08)).toFixed(2);
+      // Authentic Aviator Curve: Math.pow(1.05, elapsed * 2.5) 
+      const currentMult = +(Math.pow(1.05, elapsed * 2.5)).toFixed(2);
 
       multiplierRef.current = currentMult;
       setMultiplier(currentMult);
-
-      // Dynamically update community players cashout statuses
-      setLiveBets(prev =>
-        prev.map(p => {
-          if (!p.cashedOutAt && currentMult >= p.cashoutTarget) {
-            return {
-              ...p,
-              cashedOutAt: p.cashoutTarget,
-              winAmount: +(p.bet * p.cashoutTarget).toFixed(2),
-            };
-          }
-          return p;
-        })
-      );
 
       // Auto Cashout 50% Check
       const bState = betStateRef.current;
@@ -619,7 +587,7 @@ export default function Spaceman() {
     };
 
     flightAnimRef.current = requestAnimationFrame(flightLoop);
-  }, [calculateCrashMultiplier, handleCashout50, handleCashoutFull, isSoundMuted]);
+  }, [calculateCrashMultiplier, handleCashout50, handleCashoutFull]);
 
   // Handle Crash
   const handleCrash = (finalMult: number) => {
@@ -630,7 +598,7 @@ export default function Spaceman() {
     setMultiplier(finalMult);
     multiplierRef.current = finalMult;
 
-    if (!isSoundMuted && isMountedRef.current) {
+    if (!isSoundMutedRef.current && isMountedRef.current) {
       audioSystem.playSpacemanCrash();
     }
 
@@ -715,7 +683,6 @@ export default function Spaceman() {
     setCashedFullAt(null);
     setWin50Amount(0);
     setWinFullAmount(0);
-    setLiveBets(generateSimulatedBets());
 
     let timeLeft = 5.0;
     waitingIntervalRef.current = setInterval(() => {
@@ -755,12 +722,13 @@ export default function Spaceman() {
     setMultiplier,
     betStateRef,
     currentUserRef,
-    updateUserProfile,
+    updateUserProfile: updateUserProfileRef,
   });
 
   useEffect(() => {
     startWaitingPhase();
-  }, [startWaitingPhase]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Aviator-style Clean Canvas Starfield & Flight Stage
   useEffect(() => {
@@ -861,14 +829,14 @@ export default function Spaceman() {
 
   // Place or Cancel Bet Logic
   const handlePlaceBet = () => {
-    if (!currentUser) return;
-    if (currentUser.balance < betAmount) {
+    if (!currentUserRef.current) return;
+    if (currentUserRef.current.balance < betAmount) {
       alert('Insufficient balance to place bet.');
       return;
     }
 
-    updateUserProfile(currentUser.id, {
-      balance: +(currentUser.balance - betAmount).toFixed(2),
+    updateUserProfileRef.current(currentUserRef.current.id, {
+      balance: +(currentUserRef.current.balance - betAmount).toFixed(2),
     });
 
     if (gameState === 'waiting') {
@@ -880,7 +848,7 @@ export default function Spaceman() {
   };
 
   const handleCancelBet = () => {
-    if (!currentUser) return;
+    if (!currentUserRef.current) return;
 
     let refund = 0;
     if (gameState === 'waiting' && isBetPlaced) {
@@ -892,8 +860,8 @@ export default function Spaceman() {
     }
 
     if (refund > 0) {
-      updateUserProfile(currentUser.id, {
-        balance: +(currentUser.balance + refund).toFixed(2),
+      updateUserProfileRef.current(currentUserRef.current.id, {
+        balance: +(currentUserRef.current.balance + refund).toFixed(2),
       });
     }
   };
@@ -927,39 +895,39 @@ export default function Spaceman() {
   return (
     <div className="min-h-screen bg-[#000000] text-slate-200 pb-16 select-none font-sans overflow-x-hidden">
       {/* Top Header Bar - Clean Aviator Dark Style with Zero Overflow */}
-      <header className="bg-[#181a20] border-b border-white/10 sticky top-0 z-40 px-2 sm:px-3 py-1.5 backdrop-blur-md">
-        <div className="max-w-4xl mx-auto flex items-center justify-between gap-2">
+      <header className="bg-[#181a20] border-b border-white/10 sticky top-0 z-40 px-2 py-1 backdrop-blur-md">
+        <div className="max-w-4xl mx-auto flex items-center justify-between gap-1.5">
           {/* Left: Back & Brand */}
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
             <Link
               to="/games"
-              className="w-7 h-7 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-colors"
+              className="w-6 h-6 flex items-center justify-center rounded bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-colors"
               title="Back to Lobby"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="w-3.5 h-3.5" />
             </Link>
-            <div className="flex items-center gap-1.5">
-              <div className="bg-[#e50914] text-white px-1.5 py-0.5 rounded text-[11px] font-black italic tracking-wider transform -skew-x-6">
+            <div className="flex items-center gap-1">
+              <div className="bg-[#e50914] text-white px-1 py-0.5 rounded-sm text-[10px] font-black italic tracking-wider transform -skew-x-6 leading-none">
                 SPACEMAN
               </div>
-              <span className="hidden md:inline-block text-[9px] font-bold px-1.5 py-0.5 rounded bg-white/5 text-slate-400 border border-white/10">
+              <span className="hidden md:inline-block text-[8px] font-bold px-1 py-0.5 rounded-sm bg-white/5 text-slate-400 border border-white/10 leading-none">
                 PRAGMATIC
               </span>
             </div>
           </div>
 
           {/* Right: Balance, Live Sync & Control Buttons (Guaranteed inside container) */}
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
             {/* Live Database Synced Indicator */}
-            <div className="flex items-center gap-1 bg-black/50 px-2 py-0.5 rounded border border-white/5 text-[9px] text-slate-400" title={`Admin Sync: ${liveWinControl.toUpperCase()}`}>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <div className="flex items-center gap-1 bg-black/50 px-1.5 py-0.5 rounded border border-white/5 text-[8px] text-slate-400" title={`Admin Sync: ${liveWinControl.toUpperCase()}`}>
+              <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" />
               <span className="hidden xs:inline">LIVE</span>
             </div>
 
             {/* Balance Badge */}
-            <div className="bg-[#101216] px-2.5 py-1 rounded-lg border border-white/10 flex items-center gap-1 shadow-inner">
-              <span className="text-[10px] text-slate-400">BDT</span>
-              <span className="text-xs sm:text-sm font-black text-[#28a745] tabular-nums">
+            <div className="bg-[#101216] px-1.5 py-0.5 rounded border border-white/10 flex items-center gap-1 shadow-inner">
+              <span className="text-[9px] text-slate-400">BDT</span>
+              <span className="text-xs font-black text-[#28a745] tabular-nums leading-none">
                 {formatCurrency(currentUser?.balance || 0).replace('৳', '')}
               </span>
             </div>
@@ -968,24 +936,24 @@ export default function Spaceman() {
             <div className="flex items-center gap-0.5">
               <button
                 onClick={() => setShowFairModal(true)}
-                className="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-emerald-400 hover:bg-white/5 rounded transition-colors"
+                className="w-6 h-6 flex items-center justify-center text-slate-400 hover:text-emerald-400 hover:bg-white/5 rounded transition-colors"
                 title="Provably Fair SHA-256"
               >
-                <ShieldCheck className="w-4 h-4" />
+                <ShieldCheck className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={() => setShowRulesModal(true)}
-                className="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/5 rounded transition-colors"
+                className="w-6 h-6 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/5 rounded transition-colors"
                 title="Game Rules"
               >
-                <HelpCircle className="w-4 h-4" />
+                <HelpCircle className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={() => setIsSoundMuted(!isSoundMuted)}
-                className="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/5 rounded transition-colors"
+                className="w-6 h-6 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/5 rounded transition-colors"
                 title={isSoundMuted ? 'Unmute' : 'Mute'}
               >
-                {isSoundMuted ? <VolumeX className="w-4 h-4 text-rose-400" /> : <Volume2 className="w-4 h-4 text-slate-300" />}
+                {isSoundMuted ? <VolumeX className="w-3.5 h-3.5 text-rose-400" /> : <Volume2 className="w-3.5 h-3.5 text-slate-300" />}
               </button>
             </div>
           </div>
@@ -1011,9 +979,9 @@ export default function Spaceman() {
         )}
 
         {/* Multiplier History Ribbon - Aviator Style (Scrollbar Hidden) */}
-        <div className="bg-[#141518] rounded-lg p-1 border border-white/5 flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none">
-          <div className="flex items-center gap-1 text-[10px] text-slate-400 font-medium px-1.5 shrink-0 border-r border-white/10">
-            <History className="w-3 h-3 text-slate-400" />
+        <div className="bg-[#141518] rounded px-1 py-0.5 border border-white/5 flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none">
+          <div className="flex items-center gap-1 text-[9px] text-slate-400 font-medium px-1 shrink-0 border-r border-white/10">
+            <History className="w-2.5 h-2.5 text-slate-400" />
             <span className="hidden xs:inline">History</span>
           </div>
           {history.map(item => (
@@ -1023,7 +991,7 @@ export default function Spaceman() {
                 setSelectedHistoryItem(item);
                 setShowFairModal(true);
               }}
-              className={`text-[10px] font-bold px-2 py-0.5 rounded border shrink-0 transition-transform active:scale-95 ${getHistoryStyle(item.multiplier)}`}
+              className={`text-[9px] font-bold px-1.5 py-px rounded-sm border shrink-0 transition-transform active:scale-95 ${getHistoryStyle(item.multiplier)}`}
               title={`Click to verify SHA-256 (Seed: ${item.serverSeed})`}
             >
               {item.multiplier.toFixed(2)}x
@@ -1105,13 +1073,13 @@ export default function Spaceman() {
           )}
         </div>
 
-        {/* Betting Control Deck - Authentic Aviator / Spribe Solid Design (No Gaudy Glow) */}
-        <div className="bg-[#141518] rounded-xl p-2.5 border border-white/10 shadow-xl space-y-2.5">
+        {/* Betting Control Deck - Authentic Aviator / Spribe Solid Design */}
+        <div className="bg-[#141518] rounded-xl p-2 border border-white/10 shadow-xl flex flex-col justify-center">
           {/* Bet / Auto Tab Selector */}
-          <div className="flex items-center justify-center mx-auto bg-[#0b0c0e] rounded-lg p-0.5 w-40 border border-white/5">
+          <div className="flex items-center justify-center mx-auto bg-[#0b0c0e] rounded-md p-0.5 w-32 border border-white/5 mb-1.5">
             <button
               onClick={() => setIsAutoModeTab(false)}
-              className={`text-[10px] font-bold w-1/2 py-1 rounded transition-colors ${
+              className={`text-[9px] font-bold w-1/2 py-0.5 rounded-sm transition-colors ${
                 !isAutoModeTab ? 'bg-[#2c2d33] text-white' : 'text-slate-500 hover:text-slate-300'
               }`}
             >
@@ -1119,7 +1087,7 @@ export default function Spaceman() {
             </button>
             <button
               onClick={() => setIsAutoModeTab(true)}
-              className={`text-[10px] font-bold w-1/2 py-1 rounded transition-colors ${
+              className={`text-[9px] font-bold w-1/2 py-0.5 rounded-sm transition-colors ${
                 isAutoModeTab ? 'bg-[#2c2d33] text-white' : 'text-slate-500 hover:text-slate-300'
               }`}
             >
@@ -1127,44 +1095,43 @@ export default function Spaceman() {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-2.5 items-center">
-            {/* Left: Bet Input & Quick Chips (7 Cols) */}
-            <div className="md:col-span-7 space-y-1.5">
-              <div className="flex items-center justify-between bg-black/60 rounded-lg px-2 py-1 border border-white/10">
+          <div className="grid grid-cols-2 gap-2 items-stretch h-full">
+            {/* Left: Bet Input & Quick Chips */}
+            <div className="space-y-1.5 flex flex-col justify-end h-full">
+              <div className="flex items-center justify-between bg-black/60 rounded-md px-1 py-1 border border-white/10">
                 <button
                   disabled={isBetPlaced || isQueuedForNext || betAmount <= 10}
                   onClick={() => setBetAmount(prev => Math.max(10, prev - 10))}
-                  className="w-7 h-7 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded text-slate-300 hover:text-white disabled:opacity-40 transition-colors"
+                  className="w-5 h-5 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded text-slate-300 hover:text-white disabled:opacity-40 transition-colors"
                 >
-                  <Minus className="w-3.5 h-3.5" />
+                  <Minus className="w-2.5 h-2.5" />
                 </button>
-                <div className="flex items-center gap-1">
-                  <span className="text-[10px] text-slate-400 font-bold">BDT</span>
+                <div className="flex items-center gap-0.5">
                   <input
                     type="number"
                     disabled={isBetPlaced || isQueuedForNext}
                     value={betAmount}
                     onChange={e => setBetAmount(Math.max(10, Math.min(5000, Number(e.target.value) || 10)))}
-                    className="w-24 bg-transparent text-center font-bold text-white text-sm focus:outline-none"
+                    className="w-14 bg-transparent text-center font-bold text-white text-xs focus:outline-none p-0"
                   />
                 </div>
                 <button
                   disabled={isBetPlaced || isQueuedForNext || betAmount >= (currentUser?.balance || 5000)}
                   onClick={() => setBetAmount(prev => Math.min(5000, prev + 10))}
-                  className="w-7 h-7 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded text-slate-300 hover:text-white disabled:opacity-40 transition-colors"
+                  className="w-5 h-5 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded text-slate-300 hover:text-white disabled:opacity-40 transition-colors"
                 >
-                  <Plus className="w-3.5 h-3.5" />
+                  <Plus className="w-2.5 h-2.5" />
                 </button>
               </div>
 
-              {/* Quick Preset Chips */}
-              <div className="grid grid-cols-4 gap-1">
+              {/* Quick Preset Chips - Compact 2x2 Grid */}
+              <div className="grid grid-cols-2 gap-1">
                 {[50, 100, 200, 500].map(val => (
                   <button
                     key={val}
                     disabled={isBetPlaced || isQueuedForNext}
                     onClick={() => adjustBet(val)}
-                    className="py-1 rounded bg-[#1f2127] hover:bg-[#2a2d35] text-[10px] font-bold text-slate-300 border border-white/5 transition-colors disabled:opacity-40 active:scale-95"
+                    className="py-1 rounded bg-[#1f2127] hover:bg-[#2a2d35] text-[9px] font-bold text-slate-300 border border-white/5 transition-colors disabled:opacity-40 active:scale-95 leading-none"
                   >
                     {val}
                   </button>
@@ -1173,17 +1140,17 @@ export default function Spaceman() {
 
               {/* Auto Cashout Controls (Visible if Auto Tab is chosen) */}
               {isAutoModeTab && (
-                <div className="grid grid-cols-2 gap-1.5 pt-1 border-t border-white/5">
+                <div className="space-y-1 pt-1 border-t border-white/5">
                   {/* Full Auto Cashout */}
-                  <div className="flex items-center justify-between bg-black/40 px-2 py-1 rounded border border-white/5">
-                    <label className="text-[10px] text-slate-300 flex items-center gap-1 cursor-pointer">
+                  <div className="flex items-center justify-between bg-black/40 px-1 py-0.5 rounded border border-white/5">
+                    <label className="text-[8px] text-slate-300 flex items-center gap-1 cursor-pointer font-medium">
                       <input
                         type="checkbox"
                         checked={autoCashoutFullEnabled}
                         onChange={e => setAutoCashoutFullEnabled(e.target.checked)}
-                        className="w-3 h-3 rounded bg-black border-white/20 text-[#28a745] focus:ring-0"
+                        className="w-2 h-2 rounded-[2px] bg-black border-white/20 text-[#28a745] focus:ring-0"
                       />
-                      Auto Cash
+                      Auto
                     </label>
                     <input
                       type="number"
@@ -1191,18 +1158,17 @@ export default function Spaceman() {
                       disabled={!autoCashoutFullEnabled}
                       value={autoCashoutFullMult}
                       onChange={e => setAutoCashoutFullMult(Math.max(1.01, Number(e.target.value) || 1.01))}
-                      className="w-12 text-right text-xs font-bold text-amber-400 bg-transparent outline-none disabled:opacity-30"
+                      className="w-8 text-right text-[9px] font-bold text-amber-400 bg-transparent outline-none disabled:opacity-30 p-0"
                     />
                   </div>
-
                   {/* 50% Auto Cashout */}
-                  <div className="flex items-center justify-between bg-black/40 px-2 py-1 rounded border border-white/5">
-                    <label className="text-[10px] text-sky-300 flex items-center gap-1 cursor-pointer">
+                  <div className="flex items-center justify-between bg-black/40 px-1 py-0.5 rounded border border-white/5">
+                    <label className="text-[8px] text-sky-300 flex items-center gap-1 cursor-pointer font-medium">
                       <input
                         type="checkbox"
                         checked={autoCashout50Enabled}
                         onChange={e => setAutoCashout50Enabled(e.target.checked)}
-                        className="w-3 h-3 rounded bg-black border-white/20 text-sky-500 focus:ring-0"
+                        className="w-2 h-2 rounded-[2px] bg-black border-white/20 text-sky-500 focus:ring-0"
                       />
                       Auto 50%
                     </label>
@@ -1212,39 +1178,38 @@ export default function Spaceman() {
                       disabled={!autoCashout50Enabled}
                       value={autoCashout50Mult}
                       onChange={e => setAutoCashout50Mult(Math.max(1.01, Number(e.target.value) || 1.01))}
-                      className="w-12 text-right text-xs font-bold text-sky-400 bg-transparent outline-none disabled:opacity-30"
+                      className="w-8 text-right text-[9px] font-bold text-sky-400 bg-transparent outline-none disabled:opacity-30 p-0"
                     />
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Right: Solid Action Buttons (5 Cols) */}
-            <div className="md:col-span-5 flex flex-col gap-1.5 h-full">
+            {/* Right: Solid Action Buttons */}
+            <div className="flex flex-col gap-1.5 h-full">
               {/* Ready / Waiting / Flight State Buttons */}
               {isBetPlaced && gameState === 'flying' && cashedFullAt === null ? (
-                <div className="grid grid-cols-2 gap-1.5 h-full min-h-[50px]">
+                <div className="flex flex-col gap-1.5 h-full min-h-[60px]">
                   {/* 50% Cashout Button */}
                   <button
                     disabled={cashed50At !== null}
                     onClick={handleCashout50}
-                    className="w-full h-full py-2 bg-[#0284c7] hover:bg-[#0369a1] text-white rounded-xl font-bold flex flex-col items-center justify-center shadow-[0_3px_0_rgba(0,0,0,0.4)] active:translate-y-[2px] transition-all disabled:opacity-40"
+                    className="w-full flex-1 py-1 bg-[#0284c7] hover:bg-[#0369a1] text-white rounded-lg font-bold flex flex-col items-center justify-center shadow-[0_2px_0_rgba(0,0,0,0.4)] active:translate-y-[2px] transition-all disabled:opacity-40"
                   >
-                    <span className="text-[11px] font-black uppercase leading-tight">
-                      {cashed50At !== null ? '50% CASHED' : 'CASH OUT 50%'}
+                    <span className="text-[8px] font-black uppercase leading-none">
+                      {cashed50At !== null ? '50% CASHED' : 'CASH 50%'}
                     </span>
-                    <span className="text-[10px] font-bold text-sky-100">
+                    <span className="text-[9px] font-bold text-sky-100 leading-none mt-0.5">
                       {formatCurrency((betAmount / 2) * multiplier)}
                     </span>
                   </button>
-
                   {/* Full Cashout Button */}
                   <button
                     onClick={handleCashoutFull}
-                    className="w-full h-full py-2 bg-[#ff9900] hover:bg-[#e68a00] text-black rounded-xl font-black flex flex-col items-center justify-center shadow-[0_3px_0_rgba(0,0,0,0.4)] active:translate-y-[2px] transition-all"
+                    className="w-full flex-1 py-1 bg-[#ff9900] hover:bg-[#e68a00] text-black rounded-lg flex flex-col items-center justify-center shadow-[0_2px_0_rgba(0,0,0,0.4)] active:translate-y-[2px] transition-all"
                   >
-                    <span className="text-[11px] font-black uppercase leading-tight">CASH OUT</span>
-                    <span className="text-[10px] font-bold text-black">
+                    <span className="text-[10px] font-black uppercase leading-none">CASH OUT</span>
+                    <span className="text-[10px] font-bold text-black leading-none mt-0.5">
                       {formatCurrency((cashed50At ? betAmount / 2 : betAmount) * multiplier)}
                     </span>
                   </button>
@@ -1252,23 +1217,23 @@ export default function Spaceman() {
               ) : isBetPlaced && gameState === 'waiting' ? (
                 <button
                   onClick={handleCancelBet}
-                  className="w-full h-12 bg-[#cb011a] hover:bg-[#a10115] text-white rounded-xl flex flex-col items-center justify-center shadow-[0_3px_0_rgba(0,0,0,0.4)] active:translate-y-[2px] transition-all"
+                  className="w-full h-full min-h-[60px] bg-[#cb011a] hover:bg-[#a10115] text-white rounded-lg flex flex-col items-center justify-center shadow-[0_2px_0_rgba(0,0,0,0.4)] active:translate-y-[2px] transition-all"
                 >
-                  <span className="text-xs font-black uppercase leading-none mb-0.5">CANCEL</span>
-                  <span className="text-[10px] font-bold text-rose-200">WAITING FOR NEXT ROUND</span>
+                  <span className="text-[10px] font-black uppercase leading-none mb-0.5">CANCEL</span>
+                  <span className="text-[8px] font-bold text-rose-200">WAITING</span>
                 </button>
               ) : isQueuedForNext ? (
                 <button
                   onClick={handleCancelBet}
-                  className="w-full h-12 bg-[#cb011a] hover:bg-[#a10115] text-white rounded-xl flex flex-col items-center justify-center shadow-[0_3px_0_rgba(0,0,0,0.4)] active:translate-y-[2px] transition-all"
+                  className="w-full h-full min-h-[60px] bg-[#cb011a] hover:bg-[#a10115] text-white rounded-lg flex flex-col items-center justify-center shadow-[0_2px_0_rgba(0,0,0,0.4)] active:translate-y-[2px] transition-all"
                 >
-                  <span className="text-xs font-black uppercase leading-none mb-0.5">CANCEL QUEUE</span>
-                  <span className="text-[10px] font-bold text-rose-200">BET QUEUED ({betAmount} BDT)</span>
+                  <span className="text-[10px] font-black uppercase leading-none mb-0.5">CANCEL</span>
+                  <span className="text-[8px] font-bold text-rose-200">QUEUED</span>
                 </button>
               ) : (
                 <button
                   onClick={handlePlaceBet}
-                  className="w-full h-12 bg-[#28a745] hover:bg-[#218838] text-white rounded-xl flex flex-col items-center justify-center shadow-[0_3px_0_rgba(0,0,0,0.4)] active:translate-y-[2px] transition-all"
+                  className="w-full h-full min-h-[60px] bg-[#28a745] hover:bg-[#218838] text-white rounded-lg flex flex-col items-center justify-center shadow-[0_2px_0_rgba(0,0,0,0.4)] active:translate-y-[2px] transition-all"
                 >
                   <span className="text-sm font-black uppercase leading-none mb-0.5">BET</span>
                   <span className="text-[10px] font-bold text-emerald-100">{betAmount.toFixed(2)} BDT</span>
@@ -1278,151 +1243,50 @@ export default function Spaceman() {
           </div>
         </div>
 
-        {/* Live Bets / My Bets / Top Tab Panel (Scrollbar completely hidden, realistic 300-3000 player volume) */}
+        {/* My Bets Panel (Scrollbar completely hidden) */}
         <div className="bg-[#141518] rounded-xl border border-white/10 overflow-hidden shadow-lg">
-          {/* Tab Headers */}
+          {/* Header */}
           <div className="flex items-center justify-between border-b border-white/10 px-3 py-2 bg-[#101216]">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setActiveTab('all')}
-                className={`text-xs font-bold px-2.5 py-1 rounded transition-colors ${
-                  activeTab === 'all'
-                    ? 'bg-[#2c2d33] text-white'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                All Bets ({totalRoundBetsCount.toLocaleString()})
-              </button>
-              <button
-                onClick={() => setActiveTab('my')}
-                className={`text-xs font-bold px-2.5 py-1 rounded transition-colors ${
-                  activeTab === 'my'
-                    ? 'bg-[#2c2d33] text-white'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                My Bets ({myBets.length})
-              </button>
-              <button
-                onClick={() => setActiveTab('top')}
-                className={`text-xs font-bold px-2.5 py-1 rounded transition-colors ${
-                  activeTab === 'top'
-                    ? 'bg-[#2c2d33] text-white'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                Top
-              </button>
-            </div>
-
-            <div className="text-[10px] text-slate-400 font-medium">
-              Total Volume: <span className="font-bold text-slate-200">{formatCurrency(totalRoundVolume)}</span>
+            <div className="text-xs font-bold text-slate-200">
+              My Bets ({myBets.length})
             </div>
           </div>
 
-          {/* Tab Content List - Strict No Scrollbar */}
-          <div className="max-h-[220px] overflow-y-auto no-scrollbar scrollbar-none divide-y divide-white/5 text-xs">
-            {activeTab === 'all' && (
+          {/* List - Strict No Scrollbar */}
+          <div className="max-h-[180px] overflow-y-auto no-scrollbar scrollbar-none divide-y divide-white/5 text-[10px]">
+            {myBets.length === 0 ? (
+              <div className="py-6 text-center text-slate-500 text-[10px]">
+                No bets recorded in this session yet. Place your first bet above!
+              </div>
+            ) : (
               <>
-                {/* Table Header */}
-                <div className="grid grid-cols-3 px-3 py-1.5 bg-black/40 text-[10px] font-bold text-slate-500 uppercase tracking-wider sticky top-0 backdrop-blur-md">
-                  <span>User</span>
+                <div className="grid grid-cols-4 px-2 py-1 bg-black/40 text-[9px] font-bold text-slate-500 uppercase tracking-wider sticky top-0 backdrop-blur-md">
+                  <span>Round</span>
                   <span className="text-center">Bet</span>
-                  <span className="text-right">Cashout / Win</span>
+                  <span className="text-center">Mult</span>
+                  <span className="text-right">Win</span>
                 </div>
-
-                {liveBets.map(bet => (
-                  <div key={bet.id} className="grid grid-cols-3 items-center px-3 py-1.5 hover:bg-white/5 transition-colors">
-                    <div className="flex items-center gap-1.5 truncate">
-                      <div className="w-5 h-5 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center text-[9px] font-bold">
-                        {bet.user.charAt(0)}
-                      </div>
-                      <span className="text-slate-300 font-medium truncate">{bet.user}</span>
-                    </div>
-                    <div className="text-center text-slate-300 font-bold tabular-nums">
-                      {bet.bet} BDT
-                    </div>
-                    <div className="text-right">
-                      {bet.cashedOutAt ? (
-                        <div className="flex items-center justify-end gap-1">
-                          <span className="px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 font-bold text-[10px] border border-emerald-500/20">
-                            {bet.cashedOutAt}x
-                          </span>
-                          <span className="text-[#28a745] font-bold tabular-nums">
-                            +{bet.winAmount}
-                          </span>
-                        </div>
+                {myBets.map(b => (
+                  <div key={b.id} className="grid grid-cols-4 items-center px-2 py-1 hover:bg-white/5 transition-colors text-[9px]">
+                    <span className="text-slate-400 font-mono truncate">{b.roundId}</span>
+                    <span className="text-center text-slate-300 font-bold">{b.betAmount} BDT</span>
+                    <span className="text-center">
+                      {b.cashedOutFullAt ? (
+                        <span className="text-emerald-400 font-bold text-[9px]">{b.cashedOutFullAt}x</span>
+                      ) : b.cashedOut50At ? (
+                        <span className="text-sky-400 font-bold text-[9px]">50% @ {b.cashedOut50At}x</span>
                       ) : (
-                        <span className="text-slate-500 text-[10px] italic">In Flight...</span>
+                        <span className="text-rose-400 font-medium text-[9px]">Crashed</span>
                       )}
-                    </div>
-                  </div>
-                ))}
-              </>
-            )}
+                    </span>
+                    <span className="text-right font-bold">
+                      {b.totalWin > 0 ? (
+                        <span className="text-[#28a745]">+{formatCurrency(b.totalWin)}</span>
+                      ) : (
 
-            {activeTab === 'my' && (
-              <>
-                {myBets.length === 0 ? (
-                  <div className="py-8 text-center text-slate-500 text-xs">
-                    No bets recorded in this session yet. Place your first bet above!
-                  </div>
-                ) : (
-                  <>
-                    <div className="grid grid-cols-4 px-3 py-1.5 bg-black/40 text-[10px] font-bold text-slate-500 uppercase tracking-wider sticky top-0 backdrop-blur-md">
-                      <span>Round</span>
-                      <span className="text-center">Bet</span>
-                      <span className="text-center">Mult</span>
-                      <span className="text-right">Win</span>
-                    </div>
-                    {myBets.map(b => (
-                      <div key={b.id} className="grid grid-cols-4 items-center px-3 py-1.5 hover:bg-white/5 transition-colors">
-                        <span className="text-slate-400 text-[11px] font-mono">{b.roundId}</span>
-                        <span className="text-center text-slate-300 font-bold">{b.betAmount} BDT</span>
-                        <span className="text-center">
-                          {b.cashedOutFullAt ? (
-                            <span className="text-emerald-400 font-bold text-[11px]">{b.cashedOutFullAt}x</span>
-                          ) : b.cashedOut50At ? (
-                            <span className="text-sky-400 font-bold text-[11px]">50% @ {b.cashedOut50At}x</span>
-                          ) : (
-                            <span className="text-rose-400 font-medium text-[11px]">Crashed</span>
-                          )}
-                        </span>
-                        <span className="text-right font-bold">
-                          {b.totalWin > 0 ? (
-                            <span className="text-[#28a745]">+{formatCurrency(b.totalWin)}</span>
-                          ) : (
-                            <span className="text-slate-500">0.00 BDT</span>
-                          )}
-                        </span>
-                      </div>
-                    ))}
-                  </>
-                )}
-              </>
-            )}
-
-            {activeTab === 'top' && (
-              <>
-                <div className="grid grid-cols-3 px-3 py-1.5 bg-black/40 text-[10px] font-bold text-slate-500 uppercase tracking-wider sticky top-0 backdrop-blur-md">
-                  <span>User</span>
-                  <span className="text-center">Multiplier</span>
-                  <span className="text-right">Payout</span>
-                </div>
-                {topWinners.map(w => (
-                  <div key={w.id} className="grid grid-cols-3 items-center px-3 py-1.5 hover:bg-white/5 transition-colors">
-                    <div className="flex items-center gap-1.5 truncate">
-                      <Trophy className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                      <span className="text-slate-200 font-bold truncate">{w.user}</span>
-                    </div>
-                    <div className="text-center">
-                      <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-300 font-extrabold text-[11px] border border-amber-500/30">
-                        {w.mult.toFixed(2)}x
-                      </span>
-                    </div>
-                    <div className="text-right text-[#28a745] font-black tabular-nums">
-                      +{formatCurrency(w.win)}
-                    </div>
+                        <span className="text-slate-500">0.00 BDT</span>
+                      )}
+                    </span>
                   </div>
                 ))}
               </>

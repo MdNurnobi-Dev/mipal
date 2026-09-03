@@ -33,7 +33,7 @@ export default function AdminManageGames() {
         mines: true,
         fly_x: true,
         spaceman: true,
-        wild_bounty: false
+        wild_bounty: true
       });
     }
 

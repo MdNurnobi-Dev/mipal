@@ -31,6 +31,7 @@ const FortuneGems = lazy(() => import('./pages/games/FortuneGems'));
 const Mines = lazy(() => import('./pages/games/Mines'));
 const FlyX = lazy(() => import('./pages/games/FlyX'));
 const Spaceman = lazy(() => import('./pages/games/Spaceman'));
+const WildBounty = lazy(() => import('./pages/games/WildBounty'));
 const PlatformActivity = lazy(() => import('./pages/PlatformActivity'));
 
 // Admin Dashboard & Management Pages - Lazy Loaded in isolated chunk
@@ -220,6 +221,9 @@ export default function App() {
                     <Route path="/games/fly-x" element={<FlyX />} />
                     <Route path="/games/fly_x" element={<FlyX />} />
                     <Route path="/games/spaceman" element={<Spaceman />} />
+                    <Route path="/games/slots/wild-bounty" element={<WildBounty />} />
+                    <Route path="/games/wild-bounty" element={<WildBounty />} />
+                    <Route path="/games/wild_bounty" element={<WildBounty />} />
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/refer" element={<Refer />} />
                     <Route path="/deposit" element={<Deposit />} />

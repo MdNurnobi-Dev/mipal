@@ -4,11 +4,10 @@ Whenever you are building, creating, or modifying ANY feature in this applicatio
 
 ---
 
-### 1. 🛑 STRICT LIGHT THEME MANDATE (NO DARK THEMES)
-- **Always use Pure Light Themes** across the entire application (Admin Panel, User Pages, Dashboards, Modals, Forms, and Tables).
-- **FORBIDDEN:** Do NOT use dark themes, dark cards (`bg-slate-900`, `bg-black`, `bg-gray-900`), black backdrops, or dark navigation bars.
-- **Allowed Colors:** Use crisp white cards (`bg-white`), subtle off-white backgrounds (`bg-slate-50`, `bg-[#F1F5F9]`), soft light borders (`border-slate-200/80`, `border-slate-100`), and light neutral accent badges (`bg-indigo-50`, `bg-emerald-50`, `bg-amber-50`).
-
+### 1. 🛑 THEME MANDATE (MIXED: LIGHT APP, DARK GAMES)
+- **General Application (Light Theme):** Always use Pure Light Themes across the Admin Panel, User Pages, Dashboards, Modals, Forms, and Tables. Do NOT use dark cards or dark backgrounds here.
+- **Game Pages (Dark Theme):** **ALL Game components and Game Pages (Mines, Aviator, etc.) MUST strictly use Dark Themes.** 
+- **Game Colors:** Use deep dark backgrounds (`bg-[#0c131c]`, `bg-[#090e15]`, `bg-[#121b27]`), neon accents, and dark borders (`border-[#213143]`). Light themes are FORBIDDEN inside game UIs.
 ---
 
 ### 2. 🛑 LIGHTWEIGHT TYPOGRAPHY & FONT RULES (NO HEAVY/BOLD/OVERSIZED FONTS)

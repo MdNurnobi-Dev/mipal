@@ -28,6 +28,20 @@ export class ErrorBoundary extends React.Component<Props, State> {
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Uncaught error:', error, errorInfo);
     this.setState({ errorInfo });
+
+    // Handle Vite dynamic import failure / stale chunk reload
+    const errorMsg = error?.message || '';
+    if (
+      errorMsg.includes('Failed to fetch dynamically imported module') ||
+      errorMsg.includes('Importing a module script failed') ||
+      errorMsg.includes('dynamically imported module')
+    ) {
+      const hasReloaded = sessionStorage.getItem('chunk_reload_retry');
+      if (!hasReloaded) {
+        sessionStorage.setItem('chunk_reload_retry', 'true');
+        window.location.reload();
+      }
+    }
   }
 
   public render() {

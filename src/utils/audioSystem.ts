@@ -158,17 +158,20 @@ class AudioSystem {
     this.init();
     if (!this.ctx || !this.masterGain) return;
     const t = this.ctx.currentTime;
+    
+    // Subtle, crisp UI "tick"
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(450, t);
-    osc.frequency.exponentialRampToValueAtTime(150, t + 0.05);
-    gain.gain.setValueAtTime(0.08, t);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(800, t);
+    osc.frequency.exponentialRampToValueAtTime(100, t + 0.03);
+    gain.gain.setValueAtTime(0.15, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+    
     osc.connect(gain);
     gain.connect(this.masterGain);
     osc.start(t);
-    osc.stop(t + 0.06);
+    osc.stop(t + 0.05);
   }
 
   playMinesGem(step: number = 1) {
@@ -176,19 +179,25 @@ class AudioSystem {
     this.init();
     if (!this.ctx || !this.masterGain) return;
     const t = this.ctx.currentTime;
-    // Rising crystal bell harmonic
-    const baseFreq = Math.min(1200, 520 + step * 40);
-    [baseFreq, baseFreq * 1.5, baseFreq * 2].forEach((freq, idx) => {
-      const osc = this.ctx!.createOscillator();
-      const gain = this.ctx!.createGain();
+    
+    // Pleasant, soft chime that goes up in pitch
+    const baseFreq = Math.min(1500, 600 + step * 50);
+    const harmonics = [1, 1.5, 2.5]; 
+    
+    harmonics.forEach((h, idx) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, t + idx * 0.02);
-      gain.gain.setValueAtTime(0.06 / (idx + 1), t + idx * 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25 + idx * 0.05);
+      osc.frequency.setValueAtTime(baseFreq * h, t);
+      
+      // Softer volume, slightly longer decay
+      gain.gain.setValueAtTime(0.08 / (idx + 1), t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4 + (idx * 0.1));
+      
       osc.connect(gain);
-      gain.connect(this.masterGain!);
-      osc.start(t + idx * 0.02);
-      osc.stop(t + 0.35);
+      gain.connect(this.masterGain);
+      osc.start(t);
+      osc.stop(t + 0.6);
     });
   }
 
@@ -197,18 +206,36 @@ class AudioSystem {
     this.init();
     if (!this.ctx || !this.masterGain) return;
     const t = this.ctx.currentTime;
-    // Low bass punch + noise explosion
+    
+    // Alert / Explosion: low distorted thud
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(120, t);
-    osc.frequency.exponentialRampToValueAtTime(30, t + 0.4);
-    gain.gain.setValueAtTime(0.25, t);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+    osc.type = 'square'; // harsher waveform
+    osc.frequency.setValueAtTime(150, t);
+    osc.frequency.exponentialRampToValueAtTime(20, t + 0.3);
+    
+    gain.gain.setValueAtTime(0.3, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+    
+    // Add a secondary oscillator for discordant alert feel
+    const osc2 = this.ctx.createOscillator();
+    const gain2 = this.ctx.createGain();
+    osc2.type = 'sawtooth';
+    osc2.frequency.setValueAtTime(300, t);
+    osc2.frequency.exponentialRampToValueAtTime(40, t + 0.3);
+    
+    gain2.gain.setValueAtTime(0.2, t);
+    gain2.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+    
     osc.connect(gain);
     gain.connect(this.masterGain);
+    osc2.connect(gain2);
+    gain2.connect(this.masterGain);
+    
     osc.start(t);
-    osc.stop(t + 0.5);
+    osc.stop(t + 0.4);
+    osc2.start(t);
+    osc2.stop(t + 0.4);
   }
 
   playMinesCashout() {
@@ -378,6 +405,123 @@ class AudioSystem {
     gain.connect(this.masterGain);
     osc.start(t);
     osc.stop(t + 0.55);
+  }
+
+  // ==========================================
+  // WILD BOUNTY SHOWDOWN SOUND EFFECTS (WESTERN)
+  // ==========================================
+  playWildBountyGunshot() {
+    if (this.isMuted) return;
+    this.init();
+    if (!this.ctx || !this.masterGain) return;
+    const t = this.ctx.currentTime;
+
+    // High snap
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(800, t);
+    osc.frequency.exponentialRampToValueAtTime(80, t + 0.15);
+    gain.gain.setValueAtTime(0.25, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+    osc.start(t);
+    osc.stop(t + 0.22);
+
+    // Deep sub bass blast
+    const subOsc = this.ctx.createOscillator();
+    const subGain = this.ctx.createGain();
+    subOsc.type = 'sawtooth';
+    subOsc.frequency.setValueAtTime(140, t);
+    subOsc.frequency.exponentialRampToValueAtTime(25, t + 0.35);
+    subGain.gain.setValueAtTime(0.3, t);
+    subGain.gain.exponentialRampToValueAtTime(0.001, t + 0.38);
+    subOsc.connect(subGain);
+    subGain.connect(this.masterGain);
+    subOsc.start(t);
+    subOsc.stop(t + 0.4);
+  }
+
+  playWildBountyRevolverSpin() {
+    if (this.isMuted) return;
+    this.init();
+    if (!this.ctx || !this.masterGain) return;
+    const t = this.ctx.currentTime;
+    const clicks = 8;
+    for (let i = 0; i < clicks; i++) {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(1200 + Math.random() * 400, t + i * 0.035);
+      gain.gain.setValueAtTime(0.06, t + i * 0.035);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.035 + 0.02);
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+      osc.start(t + i * 0.035);
+      osc.stop(t + i * 0.035 + 0.025);
+    }
+  }
+
+  playWildBountyCascade() {
+    if (this.isMuted) return;
+    this.init();
+    if (!this.ctx || !this.masterGain) return;
+    const t = this.ctx.currentTime;
+    const notes = [440, 554.37, 659.25, 880]; // A4, C#5, E5, A5
+    notes.forEach((freq, idx) => {
+      const osc = this.ctx!.createOscillator();
+      const gain = this.ctx!.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, t + idx * 0.04);
+      gain.gain.setValueAtTime(0.12, t + idx * 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + idx * 0.04 + 0.22);
+      osc.connect(gain);
+      gain.connect(this.masterGain!);
+      osc.start(t + idx * 0.04);
+      osc.stop(t + idx * 0.04 + 0.25);
+    });
+  }
+
+  playWildBountyMultiplierLevelUp(multiplier: number) {
+    if (this.isMuted) return;
+    this.init();
+    if (!this.ctx || !this.masterGain) return;
+    const t = this.ctx.currentTime;
+    const base = Math.min(1400, 440 + Math.log2(multiplier || 1) * 120);
+    const chords = [base, base * 1.25, base * 1.5, base * 2];
+    chords.forEach((freq, idx) => {
+      const osc = this.ctx!.createOscillator();
+      const gain = this.ctx!.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, t + idx * 0.05);
+      gain.gain.setValueAtTime(0.15, t + idx * 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + idx * 0.05 + 0.35);
+      osc.connect(gain);
+      gain.connect(this.masterGain!);
+      osc.start(t + idx * 0.05);
+      osc.stop(t + idx * 0.05 + 0.4);
+    });
+  }
+
+  playWildBountyScatter() {
+    if (this.isMuted) return;
+    this.init();
+    if (!this.ctx || !this.masterGain) return;
+    const t = this.ctx.currentTime;
+    const bells = [880, 1174.66, 1479.98, 1760]; // A5, D6, F#6, A6
+    bells.forEach((freq, idx) => {
+      const osc = this.ctx!.createOscillator();
+      const gain = this.ctx!.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, t + idx * 0.08);
+      gain.gain.setValueAtTime(0.18, t + idx * 0.08);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + idx * 0.08 + 0.5);
+      osc.connect(gain);
+      gain.connect(this.masterGain!);
+      osc.start(t + idx * 0.08);
+      osc.stop(t + idx * 0.08 + 0.55);
+    });
   }
 
   synthSpeak(text: string) {
